@@ -50,6 +50,22 @@
     return v;
   }
   DB.visitorId = visitorId;
+
+  // View dedup: one count per visitor per item per 24h. The marker lives in this browser's localStorage,
+  // so refreshes and reopening the same day do not add views. Returns true the first time in the window.
+  var SEEN_PREFIX = 'campusnotes_seen_v1_';
+  var SEEN_WINDOW_MS = 24 * 60 * 60 * 1000;
+  function firstSeen(key) {
+    visitorId(); // makes sure this visitor has a persistent id
+    var k = SEEN_PREFIX + key;
+    try {
+      var last = parseInt(localStorage.getItem(k), 10);
+      if (last && Date.now() - last < SEEN_WINDOW_MS) return false;
+      localStorage.setItem(k, String(Date.now()));
+    } catch (e) { return true; } // storage blocked (private mode): count it rather than lose it
+    return true;
+  }
+  DB.firstSeen = firstSeen;
   function slugify(t) {
     return String(t || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'post';
   }
@@ -142,6 +158,7 @@
   // Counts one view for a published post (server side function in setup.sql).
   DB.bumpView = function (post) {
     if (!post) return;
+    if (!firstSeen('post_' + post.slug)) return; // already counted for this visitor in the last 24h
     if (live()) {
       withTimeout(client.rpc('bump_view', { p_slug: post.slug })).catch(function (e) { fail(e); });
     }
@@ -450,6 +467,8 @@
   };
   // kind: 'impression' | 'click'
   DB.bumpAd = function (id, kind) {
+    // impressions: one per visitor per ad per 24h (refreshes don't count). Clicks are always counted.
+    if (kind === 'impression' && !firstSeen('ad_' + id)) return Promise.resolve();
     return DB.init().then(function () {
       if (live()) return withTimeout(client.rpc('bump_ad', { p_id: id, p_kind: kind })).then(function () {}).catch(function (e) { fail(e); });
       var s = store().get();
