@@ -7,6 +7,7 @@
 .reactions, .share { display: flex; align-items: center; gap: 6px; }
 .share { gap: 8px; }
 .react, .sh, .csend { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; border-radius: 999px; border: 1px solid transparent; background: transparent; color: #4b6664; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; padding: 0 12px; transition: background .18s ease, color .18s ease, border-color .18s ease, transform .15s ease; -webkit-tap-highlight-color: transparent; }
+.react, .sh { border-color: #d7ebe6; background: #fff; }
 .react:hover, .sh:hover { background: #fff; color: #0b6f63; border-color: #d7ebe6; }
 .react:focus-visible, .sh:focus-visible, .csend:focus-visible, .to-top:focus-visible { outline: 3px solid #0d9488; outline-offset: 2px; }
 .react:active, .sh:active, .csend:active { transform: scale(.94); }
@@ -22,8 +23,9 @@
 .pn-link span { display: block; font-size: 17px; font-weight: 700; line-height: 1.3; color: #0f2f2c; }
 .pn-link.next { text-align: right; }
 
-.comments-box .comments-h { font-size: 26px; margin-bottom: 14px; }
-.comment { display: flex; gap: 12px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid #d7ebe6; }
+.comments-box .comments-h { font-size: 22px; line-height: 1.25; margin: 0 0 10px; }
+.comment { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #e3f1ee; }
+.comment:last-child { border-bottom: 0; }
 .comment-body { min-width: 0; }
 .comment-body b { font-weight: 700; }
 .comment-body p { font-size: 15px; line-height: 1.6; margin: 4px 0 0; color: #243836; overflow-wrap: anywhere; }
@@ -85,5 +87,39 @@
   .admin-page .pane-card { padding: 18px; }
   .admin-page .tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; }
   .admin-page .tab { flex: 0 0 auto; }
+}
+/* ---- mobile density: one-row action bar, Medium-style comments ---- */
+@media (max-width: 600px) {
+  .action-bar { flex-wrap: nowrap; gap: 8px; margin: 18px 0 12px; padding: 8px 0; min-height: 0; }
+  .reactions { gap: 6px; flex: 0 1 auto; min-width: 0; }
+  .share { gap: 6px; flex: 0 0 auto; }
+  .react { min-height: 40px; min-width: 0; padding: 0 10px; font-size: 13px; gap: 5px; border-color: #d7ebe6; background: #fff; }
+  .react svg { width: 18px; height: 18px; }
+  .sh, .sh.sh { width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; border-color: #d7ebe6; background: #fff; }
+  .sh svg { width: 17px; height: 17px; }
+  .post-nav { margin: 18px 0; gap: 10px; }
+  .pn-link { padding: 12px 14px; }
+  .pn-link span { font-size: 15px; }
+  .article-body p { margin: 0 0 1em; }
+  .comments-box, .related { margin-top: 26px; }
+  .comments-box .comments-h { font-size: 20px; margin: 0 0 6px; }
+  .comment { gap: 9px; padding: 9px 0; }
+  .cav-sm { width: 28px; height: 28px; font-size: 12px; }
+  .comment-body p { font-size: 14.5px; line-height: 1.5; margin: 2px 0 0; }
+  .comment-body .muted { font-size: 12px; }
+  .cform { margin-top: 10px; }
+  .cform-row { gap: 8px; }
+  .cform-row > .cav { width: 30px; height: 30px; font-size: 13px; }
+  .cform-main { gap: 6px; }
+  .cform .field { padding: 9px 14px; font-size: 14px; }
+  .cform-name { max-width: none; }
+  .cinput .field { padding-right: 46px; }
+  .csend { width: 34px; height: 34px; min-width: 34px; min-height: 34px; right: 3px; }
+  .cform .admin-note { margin-top: 4px; padding-left: 0; font-size: 13px; }
+}
+@media (max-width: 360px) {
+  .react { padding: 0 8px; }
+  .action-bar { gap: 6px; }
+  .sh, .sh.sh { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
 }
 @media (prefers-reduced-motion: reduce) { .to-top, .pn-link, .react, .sh { transition: none; } }
