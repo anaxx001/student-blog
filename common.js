@@ -53,13 +53,14 @@
   // Banner renderer. Placement sets the slot shape (top = leaderboard, inline = medium rectangle, sidebar = tall).
   // Media fills the slot (image or muted looping video), with a Sponsored label and a CTA overlay.
   // Motion is CSS only (slow zoom, CTA pulse) and is switched off for prefers-reduced-motion.
-  C.adHTML = function (ad, placement, cls) {
+  C.adHTML = function (ad, placement, cls, opts) {
     if (!ad) return '';
     var p = ['top', 'inline', 'sidebar'].indexOf(placement) >= 0 ? placement : 'top';
     var src = window.SB.safeImg(ad.media_url || '');
+    var rotating = !!(opts && opts.rotating);
     var media = '';
     if (src && ad.media_type === 'video') {
-      media = '<video class="adb-video" src="' + C.esc(src) + '" autoplay muted loop playsinline preload="metadata"></video>';
+      media = '<video class="adb-video" src="' + C.esc(src) + '" ' + (rotating ? '' : 'autoplay ') + 'muted loop playsinline preload="metadata"></video>';
     } else if (src) {
       media = '<img class="adb-img" src="' + C.esc(src) + '" alt="' + C.esc(ad.title) + '" loading="lazy">';
     } else {
@@ -71,6 +72,81 @@
       '<span class="adb-cta">' + C.esc(ad.cta || 'Learn more') + ' →</span></div>' +
       '<div class="adb-copy"><h4>' + C.esc(ad.title) + '</h4>' + (ad.body ? '<p class="muted">' + C.esc(ad.body) + '</p>' : '') + '</div></a>';
   };
+  // Rotating slot: 2+ enabled ads for one placement stack in one grid cell and cross-fade in turn.
+  // Each slide is a normal ad link (data-ad), so clicks are still counted per ad.
+  C.adsForSlot = function (ads, settings, placement) {
+    if (!settings || !settings.adsOn) return [];
+    var list = (ads || []).filter(function (a) { return a.enabled && a.placement === placement; });
+    list.sort(function (a, b) { return (a.impressions || 0) - (b.impressions || 0); });
+    return list;
+  };
+  C.adRotator = function (list, placement, cls) {
+    var p = ['top', 'inline', 'sidebar'].indexOf(placement) >= 0 ? placement : 'top';
+    var slides = list.map(function (ad, i) {
+      return C.adHTML(ad, p, 'adr-slide' + (i === 0 ? ' is-active' : ''), { rotating: true });
+    }).join('');
+    var dots = list.map(function (ad, i) {
+      return '<button type="button" class="adr-dot' + (i === 0 ? ' is-on' : '') + '" data-i="' + i + '" aria-label="Show ad ' + (i + 1) + ' of ' + list.length + '"' + (i === 0 ? ' aria-current="true"' : '') + '></button>';
+    }).join('');
+    return '<div class="adr adr-' + p + ' ' + (cls || '') + '" aria-roledescription="carousel" aria-label="Sponsored">' +
+      '<div class="adr-track">' + slides + '</div>' +
+      '<div class="adr-dots" role="group" aria-label="Choose ad">' + dots + '</div></div>';
+  };
+  // Starts every rotator under root: advance every 3.5s; pause on hover/focus or hidden tab; reduced motion = manual dots only.
+  // An impression is counted each time a slide becomes the visible one (DB.bumpAd dedups per visitor per ad per 24h).
+  C.ROTATE_MS = 3500;
+  C.mountAdRotators = function (root) {
+    var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    (root || document).querySelectorAll('.adr:not([data-mounted])').forEach(function (el) {
+      el.setAttribute('data-mounted', '1');
+      var slides = el.querySelectorAll('.adr-slide'), dots = el.querySelectorAll('.adr-dot');
+      var idx = 0, timer = null, hovered = false, focused = false;
+      function show(i) {
+        idx = (i + slides.length) % slides.length;
+        slides.forEach(function (s, k) {
+          var on = k === idx;
+          s.classList.toggle('is-active', on);
+          s.setAttribute('aria-hidden', on ? 'false' : 'true');
+          var v = s.querySelector('video');
+          if (v) { if (on) { var pr = v.play && v.play(); if (pr && pr.catch) pr.catch(function () {}); } else { v.pause(); } }
+        });
+        dots.forEach(function (d, k) {
+          d.classList.toggle('is-on', k === idx);
+          if (k === idx) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current');
+        });
+        var id = slides[idx] && slides[idx].getAttribute('data-ad');
+        if (id && window.DB && window.DB.bumpAd && !document.hidden) window.DB.bumpAd(id, 'impression');
+      }
+      function sync() {
+        clearInterval(timer); timer = null;
+        if (reduce || hovered || focused || document.hidden || slides.length < 2) return;
+        timer = setInterval(function () { show(idx + 1); }, C.ROTATE_MS);
+      }
+      el.addEventListener('mouseenter', function () { hovered = true; sync(); });
+      el.addEventListener('mouseleave', function () { hovered = false; sync(); });
+      el.addEventListener('focusin', function () { focused = true; sync(); });
+      el.addEventListener('focusout', function (e) { if (!el.contains(e.relatedTarget)) { focused = false; sync(); } });
+      el.addEventListener('click', function (e) {
+        var d = e.target.closest('.adr-dot');
+        if (!d) return;
+        e.preventDefault();
+        show(parseInt(d.getAttribute('data-i'), 10) || 0);
+        sync();
+      });
+      document.addEventListener('visibilitychange', sync);
+      show(0);
+      sync();
+    });
+  };
+  // If an ad image fails to load (bad link, deleted file), show the headline tile instead of a broken icon.
+  document.addEventListener('error', function (e) {
+    var t = e.target;
+    if (!t || t.tagName !== 'IMG' || !t.classList.contains('adb-img')) return;
+    var fb = document.createElement('div');
+    fb.className = 'adb-fallback';
+    fb.innerHTML = '<span class="adb-fallback-title">' + C.esc(t.getAttribute('alt') || 'Sponsored') + '</span>';
+    t.replaceWith(fb);
+  }, true);
   // Loads the banner stylesheet once, so every page that renders ads gets it without editing each HTML file.
   C.loadAdCss = function () {
     if (document.getElementById('adb-css')) return;

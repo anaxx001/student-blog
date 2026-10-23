@@ -499,7 +499,7 @@
     var msg = String((err && (err.message || err.error)) || '');
     var status = String((err && (err.statusCode || err.status)) || '');
     if (/bucket not found/i.test(msg) || status === '404') {
-      return new Error("bucket 'media' missing. Create it in the supabase dashboard (public bucket named media), then try again.");
+      return new Error("bucket 'media' missing. Create it in the supabase dashboard run setup-v6-fix.sql once in the Supabase SQL editor, then try again.");
     }
     if (/row-level security|not allowed|unauthori[sz]ed|permission|policy|forbidden/i.test(msg) || status === '401' || status === '403') {
       return new Error("bucket 'media' blocks uploads. Run setup.sql again to add the storage policies.");

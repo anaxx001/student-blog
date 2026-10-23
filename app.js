@@ -42,14 +42,21 @@
     else { wa.removeAttribute('href'); wa.classList.add('is-empty'); wa.title = 'WhatsApp link not set yet'; }
   }
 
-  function renderAds(s, ads) {
-    $('#adTop').innerHTML = CN.adHTML(CN.pickAd(ads, s, 'top'), 'top', 'wide');
-    $('#adSide').innerHTML = CN.adHTML(CN.pickAd(ads, s, 'sidebar'), 'sidebar', 'wide');
-    if (DB.bumpAd) {
-      var t = CN.pickAd(ads, s, 'top'), b = CN.pickAd(ads, s, 'sidebar');
-      if (t) DB.bumpAd(t.id, 'impression');
-      if (b) DB.bumpAd(b.id, 'impression');
+  // One slot: a single enabled ad renders as before; 2+ enabled ads for the placement rotate in the slot.
+  function renderSlot(sel, placement, s, ads) {
+    var el = $(sel), list = CN.adsForSlot(ads, s, placement);
+    if (!list.length) { el.innerHTML = ''; return; }
+    if (list.length === 1) {
+      el.innerHTML = CN.adHTML(list[0], placement, 'wide');
+      if (DB.bumpAd) DB.bumpAd(list[0].id, 'impression');
+      return;
     }
+    el.innerHTML = CN.adRotator(list, placement, 'wide');
+    CN.mountAdRotators(el); // impressions are counted as each slide shows
+  }
+  function renderAds(s, ads) {
+    renderSlot('#adTop', 'top', s, ads);
+    renderSlot('#adSide', 'sidebar', s, ads);
   }
 
   // Lightbox for the author photo: tap the photo to view it large; tap anywhere, the X, or Esc to close.

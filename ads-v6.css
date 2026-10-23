@@ -31,3 +31,18 @@
 @media (prefers-reduced-motion: reduce) {
   .adb-img, .adb-video, .adb-cta { animation: none; }
 }
+
+/* Rotating slot (2+ enabled ads in one placement): slides share one grid cell and cross-fade. */
+.adr { position: relative; margin: 18px auto; max-width: 100%; }
+.adr-top { width: 100%; max-width: 970px; }
+.adr-inline, .adr-sidebar { width: 300px; }
+.adr-track { display: grid; }
+.adr .adb { margin: 0 auto; grid-area: 1 / 1; width: 100%; max-width: 100%; opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility .7s; }
+.adr .adb.is-active { opacity: 1; visibility: visible; }
+.adr-dots { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
+.adr-dot { width: 9px; height: 9px; border-radius: 999px; border: 0; padding: 0; background: rgba(13,148,136,.3); cursor: pointer; transition: width .3s ease, background .3s ease; }
+.adr-dot.is-on { width: 24px; background: #0d9488; }
+.adr-dot:focus-visible { outline: 2px solid #0d9488; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .adr .adb, .adr-dot { transition: none; }
+}
