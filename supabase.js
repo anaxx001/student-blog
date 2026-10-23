@@ -155,12 +155,34 @@
     return p || null;
   };
 
+  // Daily traffic: today's row in traffic_daily (setup-v7.sql). Silent on failure so the page never breaks.
+  function localDay() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function trackDaily(views, ads) {
+    try {
+      if (!live()) return;
+      withTimeout(client.rpc('increment_traffic_daily', { p_day: localDay(), p_views: views || 0, p_ad_impressions: ads || 0 })).catch(function () {});
+    } catch (e) {}
+  }
+
+  // Daily rows for the admin chart: [{day:'YYYY-MM-DD', views, ad_impressions}] between from and to (inclusive).
+  DB.listTraffic = function (from, to) {
+    return DB.init().then(function () {
+      if (!live()) return [];
+      return withTimeout(client.from('traffic_daily').select('day, views, ad_impressions').gte('day', from).lte('day', to).order('day', { ascending: true }))
+        .then(function (r) { if (r.error) throw r.error; return r.data || []; });
+    });
+  };
+
   // Counts one view for a published post (server side function in setup.sql).
   DB.bumpView = function (post) {
     if (!post) return;
     if (!firstSeen('post_' + post.slug)) return; // already counted for this visitor in the last 24h
     if (live()) {
       withTimeout(client.rpc('bump_view', { p_slug: post.slug })).catch(function (e) { fail(e); });
+      trackDaily(1, 0);
     }
     // local copy also counts it, so the admin dashboard still moves in local mode
     try { store().trackPost(post.id); } catch (e) {}
@@ -470,7 +492,10 @@
     // impressions: one per visitor per ad per 24h (refreshes don't count). Clicks are always counted.
     if (kind === 'impression' && !firstSeen('ad_' + id)) return Promise.resolve();
     return DB.init().then(function () {
-      if (live()) return withTimeout(client.rpc('bump_ad', { p_id: id, p_kind: kind })).then(function () {}).catch(function (e) { fail(e); });
+      if (live()) {
+        if (kind === 'impression') trackDaily(0, 1);
+        return withTimeout(client.rpc('bump_ad', { p_id: id, p_kind: kind })).then(function () {}).catch(function (e) { fail(e); });
+      }
       var s = store().get();
       var a = s.ads.find(function (x) { return String(x.id) === String(id); });
       if (a) { if (kind === 'click') a.clicks = (a.clicks || 0) + 1; else a.impressions = (a.impressions || 0) + 1; store().save(s); }

@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="styles-v3.css">
 <link rel="stylesheet" href="admin-v4.css">
 <link rel="stylesheet" href="ux-v7.css">
+<link rel="stylesheet" href="traffic-v7.css">
 </head>
 <body class="admin-page">
 <div class="wrap">
@@ -89,6 +90,31 @@
         <div class="glass stat-card"><span class="stat-k">Subscribers</span><span class="stat" id="stSubs">0</span><span class="muted small">email list</span></div>
       </div>
       <p class="muted small admin-honest" id="dashNote">Counts come straight from the database. Zero means there is nothing yet.</p>
+
+      <div class="glass pane-card traffic-card">
+        <div class="traffic-head">
+          <h3>Traffic</h3>
+          <div class="traffic-presets" role="group" aria-label="Date presets">
+            <button class="btn btn-line traffic-preset" data-days="7" type="button">7d</button>
+            <button class="btn btn-line traffic-preset" data-days="30" type="button">30d</button>
+            <button class="btn btn-line traffic-preset" data-days="90" type="button">90d</button>
+          </div>
+        </div>
+        <div class="traffic-range">
+          <label class="lbl">From<input class="field" id="trFrom" type="date"></label>
+          <label class="lbl">To<input class="field" id="trTo" type="date"></label>
+          <button class="btn btn-dark" id="trApply" type="button">Apply</button>
+        </div>
+        <div class="traffic-sum muted small">
+          <span>Views in range: <strong id="trTotal">0</strong></span>
+          <span>Best day: <strong id="trBest">none</strong></span>
+        </div>
+        <div class="traffic-chart-wrap">
+          <canvas id="trCanvas" class="traffic-canvas" aria-label="Daily views chart"></canvas>
+          <div class="traffic-tip" id="trTip" hidden></div>
+        </div>
+        <p class="muted small" id="trNote">Daily views are counted from now on (setup-v7.sql). Days before that show zero.</p>
+      </div>
     </section>
 
     <section data-pane="posts" hidden>

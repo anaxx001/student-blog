@@ -147,6 +147,121 @@
     }).catch(function () { renderDash(0); });
   }
 
+  /* ---------- traffic chart (canvas, zero deps) ---------- */
+  var trRows = {}; var trDays = []; var trMax = 0; var trHits = [];
+  function ymd(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function parseYmd(s) { var p = String(s).split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function shortDay(s) { return parseYmd(s).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); }
+  function setRangeInputs(days) {
+    var to = new Date(); var from = new Date(); from.setDate(from.getDate() - (days - 1));
+    $('#trFrom').value = ymd(from); $('#trTo').value = ymd(to);
+    document.querySelectorAll('.traffic-preset').forEach(function (b) { b.classList.toggle('on', +b.dataset.days === days); });
+  }
+  function buildDays(from, to) {
+    var out = []; var d = parseYmd(from); var end = parseYmd(to);
+    while (d <= end && out.length < 732) { out.push(ymd(d)); d.setDate(d.getDate() + 1); }
+    return out;
+  }
+  function drawTraffic() {
+    var cv = $('#trCanvas'); if (!cv || !cv.getContext) return;
+    var wrap = cv.parentNode; var W = Math.max(280, wrap.clientWidth || 600); var H = 240;
+    var dpr = window.devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    var padL = 44, padR = 12, padT = 12, padB = 28;
+    var pw = W - padL - padR, ph = H - padT - padB;
+    var max = Math.max(trMax, 1); var n = trDays.length;
+    g.font = '12px system-ui, sans-serif'; g.textBaseline = 'middle';
+    // grid + y labels
+    g.strokeStyle = '#d7ebe6'; g.fillStyle = '#4b6664'; g.lineWidth = 1;
+    for (var i = 0; i <= 4; i++) {
+      var y = padT + ph - (ph * i / 4);
+      g.beginPath(); g.moveTo(padL, y + 0.5); g.lineTo(W - padR, y + 0.5); g.stroke();
+      g.textAlign = 'right'; g.fillText(String(Math.round(max * i / 4)), padL - 8, y);
+    }
+    trHits = [];
+    if (!n) { g.textAlign = 'center'; g.fillText('No days in range', W / 2, H / 2); return; }
+    var xs = function (k) { return n === 1 ? padL + pw / 2 : padL + (pw * k / (n - 1)); };
+    var ys = function (v) { return padT + ph - (ph * v / max); };
+    // area + line
+    g.beginPath();
+    trDays.forEach(function (day, k) { var x = xs(k), y = ys(trRows[day] || 0); if (k === 0) g.moveTo(x, y); else g.lineTo(x, y); });
+    g.lineTo(xs(n - 1), padT + ph); g.lineTo(xs(0), padT + ph); g.closePath();
+    g.fillStyle = 'rgba(15,157,138,0.14)'; g.fill();
+    g.beginPath();
+    trDays.forEach(function (day, k) { var x = xs(k), y = ys(trRows[day] || 0); if (k === 0) g.moveTo(x, y); else g.lineTo(x, y); });
+    g.strokeStyle = '#0f9d8a'; g.lineWidth = 2.5; g.lineJoin = 'round'; g.stroke();
+    // dots (only when the range is short enough to read)
+    if (n <= 40) {
+      g.fillStyle = '#0b6f63';
+      trDays.forEach(function (day, k) { g.beginPath(); g.arc(xs(k), ys(trRows[day] || 0), 3, 0, Math.PI * 2); g.fill(); });
+    }
+    // x labels: about 6 evenly spaced
+    g.fillStyle = '#4b6664'; g.textBaseline = 'top'; g.textAlign = 'center';
+    var step = Math.max(1, Math.ceil(n / 6));
+    for (var j = 0; j < n; j += step) g.fillText(shortDay(trDays[j]), xs(j), padT + ph + 8);
+    if ((n - 1) % step !== 0) g.fillText(shortDay(trDays[n - 1]), xs(n - 1), padT + ph + 8);
+    // hit boxes for hover/touch
+    trDays.forEach(function (day, k) { trHits.push({ x: xs(k), y: ys(trRows[day] || 0), day: day, v: trRows[day] || 0 }); });
+  }
+  function showTip(e) {
+    var tip = $('#trTip'), cv = $('#trCanvas');
+    if (!trHits.length) { tip.hidden = true; return; }
+    var rect = cv.getBoundingClientRect();
+    var pt = e.touches ? e.touches[0] : e;
+    var mx = pt.clientX - rect.left;
+    var best = null, bd = Infinity;
+    trHits.forEach(function (h) { var d = Math.abs(h.x - mx); if (d < bd) { bd = d; best = h; } });
+    if (!best || bd > 24) { tip.hidden = true; return; }
+    tip.hidden = false;
+    tip.textContent = shortDay(best.day) + ': ' + best.v + ' view' + (best.v === 1 ? '' : 's');
+    tip.style.left = Math.min(Math.max(best.x - 60, 0), rect.width - 130) + 'px';
+    tip.style.top = Math.max(best.y - 34, 0) + 'px';
+  }
+  function loadTraffic() {
+    var from = $('#trFrom').value, to = $('#trTo').value;
+    if (!from || !to) return Promise.resolve();
+    if (from > to) { var t = from; from = to; to = t; $('#trFrom').value = from; $('#trTo').value = to; }
+    trDays = buildDays(from, to);
+    return DB.listTraffic(from, to).then(function (rows) {
+      trRows = {}; var total = 0, best = null;
+      (rows || []).forEach(function (r) { var k = String(r.day).slice(0, 10); trRows[k] = (trRows[k] || 0) + (r.views || 0); });
+      trDays.forEach(function (d) { var v = trRows[d] || 0; total += v; if (!best || v > best.v) best = { d: d, v: v }; });
+      trMax = trDays.reduce(function (m, d) { return Math.max(m, trRows[d] || 0); }, 0);
+      $('#trTotal').textContent = total;
+      $('#trBest').textContent = best && best.v > 0 ? shortDay(best.d) + ' (' + best.v + ')' : 'none';
+      drawTraffic();
+    }).catch(function () {
+      trRows = {}; trMax = 0;
+      $('#trTotal').textContent = '0'; $('#trBest').textContent = 'none';
+      drawTraffic();
+    });
+  }
+  function wireTraffic() {
+    if (!$('#trCanvas')) return;
+    setRangeInputs(30);
+    document.querySelectorAll('.traffic-preset').forEach(function (b) {
+      b.addEventListener('click', function () { setRangeInputs(+b.dataset.days); loadTraffic(); });
+    });
+    $('#trApply').addEventListener('click', function () {
+      document.querySelectorAll('.traffic-preset').forEach(function (x) { x.classList.remove('on'); });
+      loadTraffic();
+    });
+    ['#trFrom', '#trTo'].forEach(function (s) {
+      $(s).addEventListener('change', function () { document.querySelectorAll('.traffic-preset').forEach(function (x) { x.classList.remove('on'); }); });
+    });
+    var cv = $('#trCanvas');
+    cv.addEventListener('mousemove', showTip);
+    cv.addEventListener('touchstart', showTip, { passive: true });
+    cv.addEventListener('touchmove', showTip, { passive: true });
+    cv.addEventListener('mouseleave', function () { $('#trTip').hidden = true; });
+    var rt = null;
+    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(drawTraffic, 150); });
+    loadTraffic();
+  }
+
   /* ---------- posts ---------- */
   function fillCats() {
     $('#pCat').innerHTML = Object.keys(SB.CATS).map(function (k) {
@@ -410,12 +525,15 @@
   });
 
   /* ---------- load ---------- */
+  var trWired = false;
   function refreshAll() {
     renderMode();
     return Promise.all([
       refreshPosts(), refreshComments(), refreshSubs(), refreshAds(),
       DB.getSettings().then(function (s) { settings = s; fillSettings(); renderAds(); })
-    ]).then(refreshDash);
+    ]).then(refreshDash).then(function () {
+      if (!trWired) { trWired = true; wireTraffic(); } else { loadTraffic(); }
+    });
   }
 
   /* ---------- image uploads (fill the link field; the Save button stores it) ---------- */
