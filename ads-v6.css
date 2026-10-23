@@ -1,0 +1,33 @@
+/* Display ad banners (v6). Slot shape follows the placement; media fills the slot. */
+.adb { display: flex; flex-direction: column; overflow: hidden; text-decoration: none; color: inherit; border-radius: 16px; position: relative; margin: 18px auto; max-width: 100%; }
+.adb-media { position: relative; overflow: hidden; background: #0f2f2c; flex: 1 1 auto; min-height: 0; }
+.adb-img, .adb-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transform-origin: center; animation: adb-zoom 18s ease-in-out infinite alternate; }
+.adb-fallback { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(135deg, #0d9488, #5eead4); color: #fff; padding: 16px; text-align: center; }
+.adb-fallback-title { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 1.4rem; }
+.adb-label { position: absolute; top: 10px; left: 10px; z-index: 2; background: rgba(0,0,0,.55); color: #fff; font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; }
+.adb-cta { position: absolute; right: 12px; bottom: 12px; z-index: 2; background: #0d9488; color: #fff; font-weight: 700; font-size: .9rem; padding: 10px 16px; border-radius: 999px; box-shadow: 0 6px 18px rgba(13,148,136,.35); animation: adb-pulse 2.4s ease-in-out infinite; }
+.adb-copy { padding: 12px 16px 14px; }
+.adb-copy h4 { margin: 0 0 4px; font-size: 1rem; }
+.adb-copy p { margin: 0; font-size: .9rem; }
+.adb:hover .adb-img, .adb:hover .adb-video { animation-play-state: paused; }
+
+/* placement shapes */
+.adb-top { width: 100%; max-width: 970px; height: 250px; }
+.adb-top .adb-media { flex: 1 1 auto; }
+.adb-inline { width: 300px; max-width: 100%; }
+.adb-inline .adb-media { aspect-ratio: 300 / 250; flex: none; }
+.adb-sidebar { width: 300px; max-width: 100%; }
+.adb-sidebar .adb-media { aspect-ratio: 300 / 600; flex: none; }
+
+@media (max-width: 720px) {
+  .adb-top { height: auto; }
+  .adb-top .adb-media { aspect-ratio: 728 / 200; flex: none; }
+  .adb-cta { font-size: .8rem; padding: 8px 12px; }
+}
+
+@keyframes adb-zoom { from { transform: scale(1); } to { transform: scale(1.08); } }
+@keyframes adb-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .adb-img, .adb-video, .adb-cta { animation: none; }
+}

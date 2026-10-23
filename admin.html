@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin · Anaxx Science Hub</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles-v3.css">
+<link rel="stylesheet" href="admin-v4.css">
+<link rel="stylesheet" href="ux-v7.css">
+</head>
+<body class="admin-page">
+<div class="wrap">
+  <nav class="nav glass admin-nav">
+    <a class="admin-brand" href="index.html">Anaxx Science Hub <span class="admin-tag">admin</span></a>
+    <div class="admin-nav-right">
+      <div class="mode-pill" id="modePill">checking…</div>
+      <button class="btn btn-line" id="logoutBtn" type="button" hidden>Log out</button>
+    </div>
+  </nav>
+</div>
+
+<div class="wrap"><div class="mode-banner" id="modeBanner" hidden></div></div>
+
+<main class="wrap admin-wrap">
+  <section class="glass admin-login" id="loginBox">
+    <div id="gateErr" class="admin-note" hidden></div>
+
+    <form id="loginForm" class="form" hidden>
+      <h2 class="h2">Admin login</h2>
+      <label class="lbl">Email<input class="field" id="loginEmail" type="email" autocomplete="username" required></label>
+      <label class="lbl">Password
+        <span class="pw-wrap"><input class="field" id="loginPass" type="password" autocomplete="current-password" required>
+        <button class="pw-eye" type="button" data-eye="loginPass" aria-pressed="false" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><line class="slash" x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg></button></span>
+      </label>
+      <button class="btn btn-dark" type="submit">Log in</button>
+      <button class="btn btn-line" id="forgotBtn" type="button">Forgot password</button>
+      <div class="admin-note" id="loginMsg"></div>
+    </form>
+
+    <form id="setupForm" class="form" hidden>
+      <h2 class="h2">Create the owner account</h2>
+      <p class="muted small">This only works once. The first account created here becomes the admin, and this page then stops offering setup. Use your own email and a password you will remember.</p>
+      <label class="lbl">Email<input class="field" id="setEmail" type="email" autocomplete="username" required></label>
+      <label class="lbl">Password (at least 8 characters)
+        <span class="pw-wrap"><input class="field" id="setPass" type="password" autocomplete="new-password" minlength="8" required>
+        <button class="pw-eye" type="button" data-eye="setPass" aria-pressed="false" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><line class="slash" x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg></button></span>
+      </label>
+      <label class="lbl">Repeat password
+        <span class="pw-wrap"><input class="field" id="setPass2" type="password" autocomplete="new-password" minlength="8" required>
+        <button class="pw-eye" type="button" data-eye="setPass2" aria-pressed="false" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><line class="slash" x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg></button></span>
+      </label>
+      <button class="btn btn-dark" type="submit">Create owner account</button>
+      <button class="btn btn-line" id="toLogin" type="button">I already have an account</button>
+      <div class="admin-note" id="setupMsg"></div>
+    </form>
+
+    <form id="resetForm" class="form" hidden>
+      <h2 class="h2">Choose a new password</h2>
+      <label class="lbl">New password (at least 8 characters)
+        <span class="pw-wrap"><input class="field" id="resetPass" type="password" autocomplete="new-password" minlength="8" required>
+        <button class="pw-eye" type="button" data-eye="resetPass" aria-pressed="false" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><line class="slash" x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg></button></span>
+      </label>
+      <label class="lbl">Repeat new password
+        <span class="pw-wrap"><input class="field" id="resetPass2" type="password" autocomplete="new-password" minlength="8" required>
+        <button class="pw-eye" type="button" data-eye="resetPass2" aria-pressed="false" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><line class="slash" x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg></button></span>
+      </label>
+      <button class="btn btn-dark" type="submit">Save new password</button>
+      <div class="admin-note" id="resetMsg"></div>
+    </form>
+  </section>
+
+  <div id="adminBody" hidden>
+    <div class="tabs" role="tablist">
+      <button class="tab on" data-tab="dash" type="button">Dashboard</button>
+      <button class="tab" data-tab="posts" type="button">Posts</button>
+      <button class="tab" data-tab="comments" type="button">Comments</button>
+      <button class="tab" data-tab="subs" type="button">Subscribers</button>
+      <button class="tab" data-tab="ads" type="button">Ads</button>
+      <button class="tab" data-tab="settings" type="button">Settings</button>
+      <button class="tab" data-tab="account" type="button">Account</button>
+    </div>
+
+    <section data-pane="dash">
+      <div class="stat-grid">
+        <div class="glass stat-card"><span class="stat-k">Posts</span><span class="stat" id="stPosts">0</span><span class="muted small" id="stPostsSub"></span></div>
+        <div class="glass stat-card"><span class="stat-k">Total views</span><span class="stat" id="stViews">0</span><span class="muted small">all published posts</span></div>
+        <div class="glass stat-card"><span class="stat-k">Pending comments</span><span class="stat" id="stPending">0</span><span class="muted small">waiting for approval</span></div>
+        <div class="glass stat-card"><span class="stat-k">Subscribers</span><span class="stat" id="stSubs">0</span><span class="muted small">email list</span></div>
+      </div>
+      <p class="muted small admin-honest" id="dashNote">Counts come straight from the database. Zero means there is nothing yet.</p>
+    </section>
+
+    <section data-pane="posts" hidden>
+      <div class="glass pane-card">
+        <div class="pane-head">
+          <h2 class="h2">Posts</h2>
+          <button class="btn btn-dark" id="newPostBtn" type="button">New post</button>
+        </div>
+        <div id="postList"></div>
+      </div>
+      <form class="glass pane-card form" id="postForm" hidden>
+        <h3 id="postFormTitle">New post</h3>
+        <input type="hidden" id="pId">
+        <label class="lbl">Title<input class="field" id="pTitle" required maxlength="160"></label>
+        <label class="lbl">Category
+          <select class="field" id="pCat"></select>
+        </label>
+        <label class="lbl">Author<input class="field" id="pAuthor" value="Churchill Celestine"></label>
+        <label class="lbl">Excerpt (shown on cards)<textarea class="field" id="pExcerpt" rows="2" maxlength="400"></textarea></label>
+        <label class="lbl">Body (blank line between paragraphs)<textarea class="field" id="pBody" rows="14"></textarea></label>
+        <label class="lbl">Cover image URL (optional)<input class="field" id="pCover" placeholder="https://..."></label>
+        <label class="lbl">or upload an image (jpg, png, webp, gif; max 5MB)<input class="field" type="file" id="pCoverFile" accept="image/*"></label>
+        <div class="admin-note" id="pCoverMsg"></div>
+        <label class="lbl">Read time (minutes, auto-estimated if blank)<input class="field" id="pRead" type="number" min="1"></label>
+        <label class="lbl">Status
+          <select class="field" id="pStatus">
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+          </select>
+        </label>
+        <div class="row-btns">
+          <button class="btn btn-dark" type="submit">Save</button>
+          <button class="btn btn-line" id="cancelPost" type="button">Cancel</button>
+          <button class="btn btn-line danger" id="deletePost" type="button" hidden>Delete post</button>
+        </div>
+        <div class="admin-note" id="postMsg"></div>
+      </form>
+    </section>
+
+    <section data-pane="comments" hidden>
+      <div class="glass pane-card">
+        <div class="pane-head">
+          <h2 class="h2">Comments</h2>
+          <select class="field" id="cFilter">
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="spam">Spam</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+        <div id="commentList"></div>
+      </div>
+    </section>
+
+    <section data-pane="subs" hidden>
+      <div class="glass pane-card">
+        <div class="pane-head">
+          <h2 class="h2">Subscribers</h2>
+          <button class="btn btn-dark" id="exportSubs" type="button">Export CSV</button>
+        </div>
+        <p class="stat" id="subCount">0</p>
+        <input class="field" id="subSearch" type="search" placeholder="Search by email">
+        <div id="subList" class="sub-list"></div>
+        <p class="muted small">Addresses are masked on screen. The CSV export has full addresses for sending your newsletter.</p>
+        <div class="admin-note" id="subMsg"></div>
+      </div>
+    </section>
+
+    <section data-pane="ads" hidden>
+      <div class="glass pane-card">
+        <div class="pane-head">
+          <h2 class="h2">Ads</h2>
+          <label class="toggle"><input type="checkbox" id="adsOn"> Show ads on the site (off by default)</label>
+        </div>
+        <div id="adList"></div>
+        <form class="form" id="adForm" style="margin-top:14px">
+          <input type="hidden" id="aId">
+          <div class="row2">
+            <input class="field" id="aName" placeholder="Name (internal)" required>
+            <select class="field" id="aPlace">
+              <option value="top">Top banner</option>
+              <option value="inline">Inside posts</option>
+              <option value="sidebar">Sidebar</option>
+            </select>
+          </div>
+          <input class="field" id="aTitle" placeholder="Headline" required>
+          <input class="field" id="aBody" placeholder="Short text">
+          <div class="row2">
+            <input class="field" id="aCta" placeholder="Button text (Learn more)">
+            <input class="field" id="aUrl" placeholder="https://..." required>
+          </div>
+          <div class="row2">
+            <input class="field" id="aMediaUrl" placeholder="Image or video link (optional)">
+            <input class="field" type="file" id="aMediaFile" accept="image/*,video/mp4,video/webm">
+          </div>
+          <div class="admin-note" id="aMediaPrev"></div>
+          <input type="hidden" id="aMediaType" value="image">
+          <label class="toggle"><input type="checkbox" id="aEnabled" checked> Enabled</label>
+          <div class="row-btns">
+            <button class="btn btn-dark" type="submit">Save ad</button>
+            <button class="btn btn-line" id="cancelAd" type="button">Clear</button>
+          </div>
+          <div class="admin-note" id="adMsg"></div>
+        </form>
+      </div>
+    </section>
+
+    <section data-pane="settings" hidden>
+      <form class="glass pane-card form" id="settingsForm">
+        <h2 class="h2">Settings</h2>
+        <label class="lbl">Logo image URL (optional, the site shows the Anaxx wordmark when blank)<input class="field" id="sLogo" placeholder="https://..."></label>
+        <label class="lbl">or upload a logo (jpg, png, webp, gif; max 5MB)<input class="field" type="file" id="sLogoFile" accept="image/*"></label>
+        <div class="admin-note" id="sLogoMsg"></div>
+        <div class="img-preview" id="sLogoPrev" hidden><img alt="Logo preview"><button class="btn btn-line danger" type="button" data-rm="logo">Remove</button></div>
+
+        <label class="lbl">Author photo URL<input class="field" id="sAuthor" placeholder="https://..."></label>
+        <label class="lbl">or upload an author photo (jpg, png, webp, gif; max 5MB)<input class="field" type="file" id="sAuthorFile" accept="image/*"></label>
+        <div class="admin-note" id="sAuthorMsg"></div>
+        <div class="img-preview" id="sAuthorPrev" hidden><img alt="Author photo preview"><button class="btn btn-line danger" type="button" data-rm="author">Remove</button></div>
+
+        <label class="lbl">Site tagline (shown in the footer)<input class="field" id="sTagline" maxlength="140" placeholder="notes from a radiography student, for health science students"></label>
+        <label class="lbl">WhatsApp channel link<input class="field" id="sWa" placeholder="https://chat.whatsapp.com/..."></label>
+        <div class="row-btns"><button class="btn btn-dark" type="submit">Save settings</button></div>
+        <div class="admin-note" id="setMsg"></div>
+      </form>
+    </section>
+
+    <section data-pane="account" hidden>
+      <form class="glass pane-card form" id="accountForm">
+        <h2 class="h2">Account</h2>
+        <p class="muted small">Signed in as <b id="accEmail"></b>. Change your password here. You need your current password.</p>
+        <label class="lbl">Current password
+          <span class="pw-wrap"><input class="field" id="aCur" type="password" autocomplete="current-password" required>
+          <button class="pw-eye" type="button" data-eye="aCur" aria-pressed="false" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><line class="slash" x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg></button></span>
+        </label>
+        <label class="lbl">New password (at least 8 characters)
+          <span class="pw-wrap"><input class="field" id="aNewPass" type="password" autocomplete="new-password" minlength="8" required>
+          <button class="pw-eye" type="button" data-eye="aNewPass" aria-pressed="false" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><line class="slash" x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg></button></span>
+        </label>
+        <label class="lbl">Repeat new password
+          <span class="pw-wrap"><input class="field" id="aNewPass2" type="password" autocomplete="new-password" minlength="8" required>
+          <button class="pw-eye" type="button" data-eye="aNewPass2" aria-pressed="false" aria-label="Show password"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><line class="slash" x1="3" y1="3" x2="21" y2="21" stroke="currentColor" stroke-width="2"/></svg></button></span>
+        </label>
+        <div class="row-btns"><button class="btn btn-dark" type="submit">Change password</button><button class="btn btn-line" id="accSignOut" type="button">Sign out</button></div>
+        <div class="admin-note" id="accMsg"></div>
+      </form>
+    </section>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<script src="data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="common.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

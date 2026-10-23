@@ -1,0 +1,49 @@
+/* Anaxx Science Hub admin, modern teal to match the public site. */
+.admin-page { background: #f4faf8; }
+.admin-brand { font-weight: 800; font-size: 20px; letter-spacing: -0.02em; color: var(--accent-ink, #0b6f63); text-decoration: none; }
+.admin-tag { font-size: 12px; font-weight: 600; color: #6b8a85; margin-left: 6px; }
+.admin-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.admin-nav-right { display: flex; align-items: center; gap: 10px; }
+
+.admin-wrap { padding-top: 20px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 18px; }
+.tabs .tab.on { background: var(--accent, #0f9d8a); color: #fff; border-color: var(--accent, #0f9d8a); }
+.tab { transition: background .15s ease, color .15s ease; }
+
+.pane-card { padding: 22px; border-radius: 18px; margin-bottom: 16px; }
+.pane-card h3 { margin-top: 0; }
+.h2 { font-weight: 800; letter-spacing: -0.02em; margin-top: 0; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 14px; }
+.stat-card { padding: 18px; border-radius: 18px; display: flex; flex-direction: column; gap: 4px; }
+.stat-k { font-size: 13px; font-weight: 600; color: #4f6b66; text-transform: uppercase; letter-spacing: .05em; }
+.stat-card .stat { font-size: 34px; font-weight: 800; color: var(--accent-ink, #0b6f63); margin: 2px 0; }
+.admin-honest { margin: 4px 2px 0; }
+
+.row-item { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid #e3eeeb; }
+.row-item:last-child { border-bottom: 0; }
+.row-item p { margin: 6px 0 0; white-space: pre-wrap; }
+.row-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn-dark { background: var(--accent, #0f9d8a); border-color: var(--accent, #0f9d8a); color: #fff; }
+.btn-dark:hover { background: var(--accent-ink, #0b6f63); }
+.btn-line { border: 1px solid #cfdcd8; background: #fff; color: #173b36; }
+.btn-line:hover { border-color: var(--accent, #0f9d8a); color: var(--accent-ink, #0b6f63); }
+.btn-line.danger { color: #b3261e; }
+
+.field { width: 100%; box-sizing: border-box; border: 1px solid #cfdcd8; border-radius: 12px; padding: 10px 12px; font: inherit; background: #fff; }
+.field:focus { outline: 2px solid var(--accent, #0f9d8a); outline-offset: 1px; border-color: transparent; }
+
+.sub-list { margin-top: 10px; }
+.img-preview { display: flex; align-items: center; gap: 12px; margin: 8px 0 4px; }
+.img-preview img { width: 72px; height: 72px; object-fit: cover; border-radius: 14px; border: 1px solid #cfdcd8; background: #fff; }
+
+.mode-pill.live { background: #d9f4ee; color: var(--accent-ink, #0b6f63); }
+.mode-pill.local { background: #fdf1d8; color: #7a5200; }
+
+/* password eye toggle */
+.pw-wrap { position: relative; display: block; }
+.pw-wrap .field { padding-right: 44px; width: 100%; }
+.pw-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: 0; cursor: pointer; padding: 6px; color: var(--accent-ink, #0b6f63); display: flex; align-items: center; }
+.pw-eye .slash { opacity: 0; }
+.pw-eye[aria-pressed="true"] .slash { opacity: 1; }

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Post · Anaxx Science Hub</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles-v3.css">
+<link rel="stylesheet" href="ux-v7.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="header-v4.css">
+</head>
+<body class="post-page">
+<div class="rprog" aria-hidden="true"><i id="rprogBar"></i></div>
+
+<header class="site-header" id="siteHeader">
+  <div class="sh-inner">
+    <a class="wordmark" href="index.html" aria-label="Anaxx Science Hub home"><span id="navLogo"></span><span>Anaxx <span class="wm-accent">Science</span> Hub</span></a>
+    <nav class="sh-links" aria-label="Main">
+      <a class="sh-link" href="index.html">Home</a>
+      <div class="sh-drop" id="catDrop">
+        <button class="sh-link" type="button" id="catBtn" aria-expanded="false" aria-controls="catMenu" aria-haspopup="true">Categories<span class="sh-caret" aria-hidden="true"></span></button>
+        <div class="sh-menu" id="catMenu" role="menu">
+        <a role="menuitem" href="category.html?c=anatomy">Anatomy</a>
+        <a role="menuitem" href="category.html?c=physiology">Physiology</a>
+        <a role="menuitem" href="category.html?c=biochemistry">Biochemistry</a>
+        <a role="menuitem" href="category.html?c=radiography">Radiography</a>
+        </div>
+      </div>
+      <a class="sh-link" href="index.html#about" data-about>About</a>
+    </nav>
+    <button class="sh-burger" id="shBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="shSheet"><span></span><span></span><span></span></button>
+  </div>
+  <div class="sh-sheet" id="shSheet">
+    <span class="sh-sheet-label">Go to</span>
+    <a href="index.html">Home</a>
+    <span class="sh-sheet-label">Categories</span>
+    <a class="sub" href="category.html?c=anatomy">Anatomy</a>
+    <a class="sub" href="category.html?c=physiology">Physiology</a>
+    <a class="sub" href="category.html?c=biochemistry">Biochemistry</a>
+    <a class="sub" href="category.html?c=radiography">Radiography</a>
+    <span class="sh-sheet-label">Blog</span>
+    <a href="index.html#about">About</a>
+  </div>
+</header>
+
+<div class="wrap"><div class="mode-banner" id="modeBanner" hidden></div></div>
+
+<main class="article-wrap" id="articleRoot">
+  <div class="nodata" id="loading">Loading…</div>
+  <article id="article" hidden>
+    <div id="cover"></div>
+    <span class="tag" id="cat"></span>
+    <h1 class="article-title" id="title"></h1>
+    <div class="muted small article-meta" id="meta"></div>
+
+    <div class="article-body" id="body"></div>
+
+    <div class="action-bar">
+      <div class="reactions" id="reactions" role="group" aria-label="Reactions">
+        <button class="react" type="button" data-react="like" aria-pressed="false" aria-label="Like" title="Like">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11H3V10h4zM7 10l4-7a2 2 0 0 1 2 2v4h6.2a2 2 0 0 1 2 2.3l-1.3 7.4A2 2 0 0 1 17.9 21H7"/></svg>
+          <b data-count="like">0</b>
+        </button>
+        <button class="react" type="button" data-react="insight" aria-pressed="false" aria-label="Insight" title="Insight">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>
+          <b data-count="insight">0</b>
+        </button>
+        <button class="react" type="button" data-react="save" aria-pressed="false" aria-label="Save" title="Save">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"/></svg>
+          <b data-count="save">0</b>
+        </button>
+      </div>
+      <div class="share" role="group" aria-label="Share this post">
+        <a class="sh" id="shareX" href="#" target="_blank" rel="noopener" aria-label="Share on X" title="Share on X">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3 3h5.2l4.3 5.9L17.4 3H20l-6.4 7.4L21 21h-5.2l-4.7-6.4L5.6 21H3l6.9-7.9z" fill="currentColor"/></svg>
+        </a>
+        <a class="sh" id="shareWa" href="#" target="_blank" rel="noopener" aria-label="Share on WhatsApp" title="Share on WhatsApp">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 7.8c.3-.1.6 0 .8.4l.7 1.5c.1.3 0 .6-.2.8l-.5.6c.6 1.2 1.6 2.2 2.9 2.9l.6-.6c.2-.2.5-.3.8-.2l1.5.7c.3.2.5.5.4.8-.2 1-1 1.7-2 1.7-3.2 0-6.6-3.4-6.6-6.6 0-1 .7-1.8 1.6-2z" fill="currentColor"/></svg>
+        </a>
+        <button class="sh" type="button" id="shareCopy" aria-label="Copy link" title="Copy link">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <nav class="post-nav" id="postNav" aria-label="More posts"></nav>
+
+    <section class="comments-box" id="commentsBox">
+      <h2 class="h2 comments-h">Comments</h2>
+      <div id="cList"></div>
+      <form class="cform" id="cForm">
+        <div class="cform-row">
+          <span class="cav" id="cAv" aria-hidden="true">+</span>
+          <div class="cform-main">
+            <input class="field cform-name" id="cName" placeholder="Your name" aria-label="Your name" maxlength="80" required>
+            <div class="cinput">
+              <input class="field" id="cText" placeholder="Add a comment" aria-label="Comment" maxlength="2000" required>
+              <button class="csend" type="submit" aria-label="Send comment" title="Send comment">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="admin-note" id="cMsg" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section class="related" id="relatedWrap" hidden>
+      <span class="eyebrow">More in <span id="relCat"></span></span>
+      <div class="grid" id="related"></div>
+    </section>
+  </article>
+
+  <div class="glass empty-state" id="notFound" hidden>
+    <span class="eyebrow">Not found</span>
+    <h3>This post is not here.</h3>
+    <p class="muted">It may have been moved to drafts or the link is wrong.</p>
+    <p style="margin-top:14px"><a class="btn btn-line" href="index.html">Back to the blog</a></p>
+  </div>
+</main>
+
+<footer class="site-footer" id="follow">
+  <a class="wordmark" href="index.html"><span id="footLogo"></span><span>Anaxx <span class="wm-accent">Science</span> Hub</span></a>
+  <p class="foot-tag">notes from a radiography student, for health science students</p>
+  <div class="socials">
+    <a href="https://www.linkedin.com/in/churchill-celestine-239920291" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4" fill="currentColor"/><rect x="5.5" y="9.5" width="2.6" height="9" fill="#fff"/><circle cx="6.8" cy="6.6" r="1.5" fill="#fff"/><path d="M10.6 9.5h2.5v1.3c.4-.8 1.4-1.5 2.9-1.5 3 0 3.5 2 3.5 4.5v4.7h-2.6v-4.2c0-1 0-2.3-1.4-2.3s-1.6 1.1-1.6 2.2v4.3h-2.6z" fill="#fff"/></svg>
+      <span>LinkedIn</span>
+    </a>
+    <a href="https://x.com/AnaxxWrites" target="_blank" rel="noopener" aria-label="X" title="X">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 3h5.2l4.3 5.9L17.4 3H20l-6.4 7.4L21 21h-5.2l-4.7-6.4L5.6 21H3l6.9-7.9z" fill="currentColor"/></svg>
+      <span>X</span>
+    </a>
+    <a href="https://substack.com/@vonanaxx" target="_blank" rel="noopener" aria-label="Substack" title="Substack">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="3" width="18" height="4" fill="currentColor"/><rect x="3" y="9" width="18" height="4" fill="currentColor"/><path d="M3 15l9 5 9-5v-1H3z" fill="currentColor"/></svg>
+      <span>Substack</span>
+    </a>
+    <a href="" id="whatsappLink" class="is-empty" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp link not set yet">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 7.8c.3-.1.6 0 .8.4l.7 1.5c.1.3 0 .6-.2.8l-.5.6c.6 1.2 1.6 2.2 2.9 2.9l.6-.6c.2-.2.5-.3.8-.2l1.5.7c.3.2.5.5.4.8-.2 1-1 1.7-2 1.7-3.2 0-6.6-3.4-6.6-6.6 0-1 .7-1.8 1.6-2z" fill="currentColor"/></svg>
+      <span>WhatsApp</span>
+    </a>
+  </div>
+  <p class="foot-legal">© 2026 Anaxx Science Hub · <a href="admin.html">Admin</a></p>
+</footer>
+
+<button class="to-top" id="toTop" type="button" aria-label="Back to top" title="Back to top"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+<div class="toast" id="toast"></div>
+<script src="data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="common.js"></script>
+<script src="post.js"></script>
+<script src="header-v4.js"></script>
+</body>
+</html>
