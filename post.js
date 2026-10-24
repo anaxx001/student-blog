@@ -51,7 +51,21 @@
       var done = function () { CN.toast('Link copied.'); };
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { CN.toast(url); });
       else { CN.toast(url); }
+      closeMenu();
     };
+    // One Share button: on phones it opens the native share sheet; elsewhere a small menu with X, WhatsApp and Copy.
+    var btn = $('#shareBtn'), menu = $('#shareMenu');
+    function closeMenu() { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); }
+    btn.onclick = function () {
+      if (navigator.share) { navigator.share({ title: p.title, text: text, url: url }).catch(function () {}); return; }
+      var open = menu.hidden;
+      menu.hidden = !open;
+      btn.setAttribute('aria-expanded', String(open));
+    };
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.share-wrap')) closeMenu();
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
   }
 
   function renderPostNav(p, all) {

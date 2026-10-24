@@ -123,3 +123,9 @@
   .sh, .sh.sh { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
 }
 @media (prefers-reduced-motion: reduce) { .to-top, .pn-link, .react, .sh { transition: none; } }
+
+/* Share: one folded button with a small popover menu (X, WhatsApp, copy link) */
+.share-wrap { position: relative; }
+.share-menu { position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 20; display: grid; gap: 2px; min-width: 180px; padding: 8px; border-radius: 14px; border: 1px solid #d7ebe6; background: #fff; box-shadow: 0 12px 32px rgba(6,44,41,.14); }
+.shm { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 0; border-radius: 10px; background: transparent; color: #13322f; font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.shm:hover { background: #eefaf6; color: #0b6f63; }
