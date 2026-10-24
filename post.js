@@ -117,8 +117,7 @@
     $('#title').textContent = p.title;
     $('#meta').innerHTML = '<span class="byline-name">' + CN.esc(p.author || 'Churchill Celestine') + '</span>' +
       '<span class="byline-dot" aria-hidden="true">·</span><time>' + CN.esc(CN.fmt(p.date)) + '</time>' +
-      '<span class="byline-dot" aria-hidden="true">·</span><span>' + CN.readMins(p) + ' min read</span>' +
-      '<span class="byline-dot" aria-hidden="true">·</span><span>' + (p.views || 0) + ' views</span>';
+      '<span class="byline-dot" aria-hidden="true">·</span><span>' + CN.readMins(p) + ' min read</span>';
     $('#body').innerHTML = String(p.body).split(/\n\n+/).map(function (par) { return '<p>' + CN.esc(par) + '</p>'; }).join('');
     $('#loading').hidden = true;
     $('#article').hidden = false;
