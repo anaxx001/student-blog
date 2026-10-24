@@ -12,7 +12,7 @@
 .adb:hover .adb-img, .adb:hover .adb-video { animation-play-state: paused; }
 
 /* placement shapes */
-.adb-top { width: 100%; max-width: 970px; height: 250px; }
+.adb-top { width: 100%; max-width: 760px; aspect-ratio: 4 / 3; }
 .adb-top .adb-media { flex: 1 1 auto; }
 .adb-inline { width: 300px; max-width: 100%; }
 .adb-inline .adb-media { aspect-ratio: 300 / 250; flex: none; }
@@ -21,7 +21,7 @@
 
 @media (max-width: 720px) {
   .adb-top { height: auto; }
-  .adb-top .adb-media { aspect-ratio: 728 / 200; flex: none; }
+  .adb-top .adb-media { aspect-ratio: 1 / 1; flex: none; }
   .adb-cta { font-size: .8rem; padding: 8px 12px; }
 }
 
@@ -34,7 +34,7 @@
 
 /* Rotating slot (2+ enabled ads in one placement): slides share one grid cell and cross-fade. */
 .adr { position: relative; margin: 18px auto; max-width: 100%; }
-.adr-top { width: 100%; max-width: 970px; }
+.adr-top { width: 100%; max-width: 760px; }
 .adr-inline, .adr-sidebar { width: 300px; }
 .adr-track { display: grid; }
 .adr .adb { margin: 0 auto; grid-area: 1 / 1; width: 100%; max-width: 100%; opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility .7s; }
