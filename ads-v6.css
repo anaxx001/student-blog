@@ -46,3 +46,8 @@
 @media (prefers-reduced-motion: reduce) {
   .adr .adb, .adr-dot { transition: none; }
 }
+
+/* Sidebar ads shrink to a compact rectangle on phones so they don't eat the whole screen */
+@media (max-width: 720px) {
+  .adb-sidebar .adb-media, .adr-sidebar .adb-media { aspect-ratio: 300 / 250; flex: none; }
+}

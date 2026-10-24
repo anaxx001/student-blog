@@ -115,7 +115,7 @@
 
   DB.init().then(function () {
     CN.modeBanner(document.getElementById('modeBanner'));
-    return Promise.all([DB.getPost(slug), DB.listPosts({}), DB.getSettings()]);
+    return Promise.all([DB.getPost(slug), DB.listPosts({}), DB.getSettings(), DB.listAds ? DB.listAds() : Promise.resolve([])]);
   }).then(function (r) {
     var p = r[0], all = CN.publishedOnly(r[1]), settings = r[2];
     $('#navLogo').innerHTML = SB.logoHTML(settings);
@@ -133,6 +133,18 @@
       '<span class="byline-dot" aria-hidden="true">·</span><time>' + CN.esc(CN.fmt(p.date)) + '</time>' +
       '<span class="byline-dot" aria-hidden="true">·</span><span>' + CN.readMins(p) + ' min read</span>';
     $('#body').innerHTML = String(p.body).split(/\n\n+/).map(function (par) { return '<p>' + CN.esc(par) + '</p>'; }).join('');
+    // 'inside post' ads render between the article and the action bar; 2+ stack into a rotator
+    var inlineAds = CN.adsForSlot(r[3] || [], settings, 'inline');
+    var adBox = $('#adInline');
+    if (adBox && inlineAds.length) {
+      if (inlineAds.length === 1) {
+        adBox.innerHTML = CN.adHTML(inlineAds[0], 'inline', 'wide');
+        if (DB.bumpAd) DB.bumpAd(inlineAds[0].id, 'impression');
+      } else {
+        adBox.innerHTML = CN.adRotator(inlineAds, 'inline', 'wide');
+        CN.mountAdRotators(adBox);
+      }
+    }
     $('#loading').hidden = true;
     $('#article').hidden = false;
 
