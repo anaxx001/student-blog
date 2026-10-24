@@ -104,17 +104,6 @@
     });
   }
 
-  $('#subForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var email = $('#subEmail').value.trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $('#subMsg').textContent = 'Enter a valid email.'; return; }
-    $('#subMsg').textContent = 'Saving…';
-    DB.subscribe(email).then(function () {
-      $('#subMsg').textContent = 'You are subscribed. Thanks!';
-      $('#subEmail').value = '';
-    }).catch(function () { $('#subMsg').textContent = 'Could not save right now. Try again later.'; });
-  });
-
   CN.bindAdClicks();
   renderCatLinks();
   $('#pulseOrn').innerHTML = SB.PULSE;
