@@ -70,11 +70,11 @@
 
   function safePostBody(value) {
     var source = String(value == null ? '' : value);
-    if (!/<\/?(p|br|b|strong|i|em|u|h2|h3|ul|ol|li|a|img)\b/i.test(source)) {
+    if (!/<\/?(p|br|b|strong|i|em|u|h2|h3|ul|ol|li|a|img|span)\b/i.test(source)) {
       return source.split(/\n\n+/).map(function (part) { return '<p>' + CN.esc(part).replace(/\n/g, '<br>') + '</p>'; }).join('');
     }
     var doc = new DOMParser().parseFromString(source, 'text/html');
-    var allowed = { p: 1, br: 1, b: 1, strong: 1, i: 1, em: 1, u: 1, h2: 1, h3: 1, ul: 1, ol: 1, li: 1, a: 1, img: 1 };
+    var allowed = { p: 1, br: 1, b: 1, strong: 1, i: 1, em: 1, u: 1, h2: 1, h3: 1, ul: 1, ol: 1, li: 1, a: 1, img: 1, span: 1 };
     function clean(node) {
       var out = document.createDocumentFragment();
       Array.prototype.slice.call(node.childNodes).forEach(function (child) {
@@ -86,6 +86,10 @@
         if (tag === 'a') {
           var href = child.getAttribute('href') || '';
           if (/^(https?:\/\/|mailto:)/i.test(href) || /^\/(?!\/)/.test(href) || /^#[A-Za-z0-9_-]+$/.test(href)) el.setAttribute('href', href);
+        }
+        if (tag === 'span') {
+          var fontSize = child.style && child.style.fontSize;
+          if (fontSize === '0.85em' || fontSize === '1em' || fontSize === '1.25em') el.style.fontSize = fontSize;
         }
         if (tag === 'img') {
           var src = child.getAttribute('src') || '';

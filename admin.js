@@ -278,7 +278,7 @@
   }
   function editorContent(body) {
     var s = String(body || '');
-    if (/<\/?(p|br|b|strong|i|em|u|h2|h3|ul|ol|li|a|img)\b/i.test(s)) return s;
+    if (/<\/?(p|br|b|strong|i|em|u|h2|h3|ul|ol|li|a|img|span)\b/i.test(s)) return s;
     return s.split(/\n\n+/).map(function (part) { return '<p>' + CN.esc(part).replace(/\n/g, '<br>') + '</p>'; }).join('');
   }
   function openPostForm(p) {
@@ -597,8 +597,32 @@
     b.addEventListener('click', function () { restoreEditorRange(); document.execCommand('formatBlock', false, b.dataset.editorBlock); saveEditorRange(); });
   });
   $('#editorSize').addEventListener('change', function () {
+    var sizes = { small: '0.85em', normal: '1em', large: '1.25em' };
+    var size = sizes[this.value] || sizes.normal, sel, range, span, fragment;
     restoreEditorRange();
-    document.execCommand('formatBlock', false, this.value === 'small' ? 'h3' : (this.value === 'large' ? 'h2' : 'p'));
+    sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    range = sel.getRangeAt(0);
+    if (!bodyEditor.contains(range.commonAncestorContainer)) return;
+    if (range.collapsed) {
+      span = document.createElement('span');
+      span.style.fontSize = size;
+      span.appendChild(document.createTextNode('​'));
+      range.insertNode(span);
+      range.setStart(span.firstChild, 1);
+      range.collapse(true);
+    } else {
+      fragment = range.extractContents();
+      span = document.createElement('span');
+      span.style.fontSize = size;
+      span.appendChild(fragment);
+      range.insertNode(span);
+      range.selectNodeContents(span);
+      range.collapse(false);
+    }
+    sel.removeAllRanges();
+    sel.addRange(range);
+    savedRange = range.cloneRange();
     saveEditorRange();
   });
   $('#insertLinkBtn').addEventListener('mousedown', function (e) { e.preventDefault(); });
