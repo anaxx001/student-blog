@@ -264,9 +264,7 @@
 
   /* ---------- posts ---------- */
   function fillCats() {
-    $('#pCat').innerHTML = Object.keys(SB.CATS).map(function (k) {
-      return '<option value="' + k + '">' + CN.esc(SB.CATS[k]) + '</option>';
-    }).join('');
+    $('#pCat').innerHTML = CN.categoryRows(settings || {}).map(function (x) { return '<option value="' + CN.esc(x.slug) + '">' + CN.esc(x.name || x.slug) + (x.visible === false ? ' (hidden)' : '') + '</option>'; }).join('');
   }
   function renderPosts() {
     if (!posts.length) { $('#postList').innerHTML = '<p class="muted">No posts yet. Click New post to write your first one.</p>'; return; }
@@ -278,6 +276,11 @@
         '<button class="btn btn-line" data-edit="' + CN.esc(p.id) + '" type="button">Edit</button></div></div>';
     }).join('');
   }
+  function editorContent(body) {
+    var s = String(body || '');
+    if (/<\/?(p|br|b|strong|i|em|u|h2|h3|ul|ol|li|a|img)\b/i.test(s)) return s;
+    return s.split(/\n\n+/).map(function (part) { return '<p>' + CN.esc(part).replace(/\n/g, '<br>') + '</p>'; }).join('');
+  }
   function openPostForm(p) {
     $('#postForm').hidden = false;
     $('#postFormTitle').textContent = p ? 'Edit post' : 'New post';
@@ -287,6 +290,9 @@
     $('#pAuthor').value = p ? p.author : 'Churchill Celestine';
     $('#pExcerpt').value = p ? p.excerpt : '';
     $('#pBody').value = p ? p.body : '';
+    $('#bodyEditor').innerHTML = p ? editorContent(p.body) : '';
+    $('#editorSize').value = 'normal';
+    setMsg('#bodyUploadMsg', '');
     $('#pCover').value = p ? p.cover : '';
     $('#pRead').value = p ? p.readTime : '';
     $('#pStatus').value = p ? p.status : 'draft';
@@ -306,10 +312,11 @@
     e.preventDefault();
     var title = $('#pTitle').value.trim();
     if (!title) return setMsg('#postMsg', 'Add a title.');
+    $('#pBody').value = $('#bodyEditor').innerHTML;
     var body = $('#pBody').value.trim();
     var status = $('#pStatus').value;
     if (status === 'published' && !body) return setMsg('#postMsg', 'A published post needs a body.');
-    var words = body.split(/\s+/).filter(Boolean).length;
+    var words = body.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
     var read = parseInt($('#pRead').value, 10) || Math.max(1, Math.ceil(words / 230));
     var id = $('#pId').value || null;
     var prev = id ? posts.find(function (x) { return x.id === id; }) : null;
@@ -335,14 +342,16 @@
   function refreshPosts() { return DB.listPosts({ all: true }).then(function (list) { posts = list; renderPosts(); }); }
 
   /* ---------- comments ---------- */
-  function renderComments(list) {
+  var commentRows = [];
+  function renderComments(list) { commentRows = list;
     if (!list.length) { $('#commentList').innerHTML = '<p class="muted">Nothing here.</p>'; return; }
     $('#commentList').innerHTML = list.map(function (c) {
       var status = c.status || (c.approved ? 'approved' : 'pending');
       return '<div class="row-item"><div><b>' + CN.esc(c.name) + '</b> <span class="muted small">on ' + CN.esc(c.postTitle) + ' · ' + CN.fmt(c.date) +
         ' · ' + status + '</span><p>' + CN.esc(c.text) + '</p></div>' +
         '<div class="row-btns">' +
-        (status === 'approved' ? '' : '<button class="btn btn-dark" data-approve="' + CN.esc(c.id) + '" type="button">Approve</button>') +
+        (status === 'approved' ? '<button class="btn btn-line" data-reply="' + CN.esc(c.id) + '" type="button">Reply</button>' : '<button class="btn btn-dark" data-approve="' + CN.esc(c.id) + '" type="button">Approve</button>') +
+        (status === 'approved' ? '<div class="reply-box" data-reply-box="' + CN.esc(c.id) + '" hidden><p class="muted small">' + (c.email ? 'Notification opens as a mailto draft.' : 'No email was left, so no notification is possible.') + '</p><textarea class="field" data-reply-text="' + CN.esc(c.id) + '" placeholder="Write your reply"></textarea><button class="btn btn-dark" data-send-reply="' + CN.esc(c.id) + '" type="button">Prepare email reply</button></div>' : '') +
         (status === 'spam' ? '' : '<button class="btn btn-line" data-spam="' + CN.esc(c.id) + '" type="button">Spam</button>') +
         '<button class="btn btn-line danger" data-cdel="' + CN.esc(c.id) + '" type="button">Delete</button></div></div>';
     }).join('');
@@ -355,6 +364,8 @@
     var t = e.target.closest('button'); if (!t) return;
     var p;
     if (t.dataset.approve) p = DB.setCommentApproved(t.dataset.approve, true);
+    else if (t.dataset.reply) { var bx=document.querySelector('[data-reply-box=\"'+t.dataset.reply+'\"]'); if(bx) bx.hidden=!bx.hidden; return; }
+    else if (t.dataset.sendReply) { var c=commentRows.filter(function(x){return String(x.id)===String(t.dataset.sendReply);})[0],replyField=document.querySelector('[data-reply-text=\"'+t.dataset.sendReply+'\"]'),txt=replyField?replyField.value.trim():''; if(!c||!txt)return; if(!c.email){toast('No email was left for this comment.');return;} var post=posts.filter(function(x){return String(x.id)===String(c.postId);})[0]; if(!post){toast('Could not find the post link.');return;} var url=new URL(CN.postUrl(post),location.href).href,sub='your comment on Anaxx Science Hub got a reply',body=txt+'\n\nRead the post: '+url;location.href='mailto:'+c.email+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(body);return; }
     else if (t.dataset.spam) p = DB.setCommentSpam(t.dataset.spam);
     else if (t.dataset.cdel) { if (!confirm('Delete this comment?')) return; p = DB.deleteComment(t.dataset.cdel); }
     if (p) p.then(function () { return refreshComments().then(refreshDash); }).catch(function () { toast('Could not update that comment.'); });
@@ -465,6 +476,13 @@
   });
   function refreshAds() { return DB.listAds().then(function (list) { ads = list; renderAds(); }); }
 
+  /* ---------- page/category and homepage text settings ---------- */
+  function renderPageCategories(){var rows=CN.categoryRows(settings||{}),box=document.getElementById('pageCategoryList');if(!box)return;box.innerHTML=rows.map(function(x,i){return '<div class="row-item"><label class="toggle"><input type="checkbox" data-page-visible="'+i+'"'+(x.visible!==false?' checked':'')+'> Visible</label><span class="muted small">'+CN.esc(x.slug)+'</span><input class="field" data-page-name="'+i+'" value="'+CN.esc(x.name||x.slug)+'" aria-label="Display name"></div>';}).join('');}
+  function savePageCategories(){var rows=CN.categoryRows(settings||{}),box=document.getElementById('pageCategoryList');Array.prototype.forEach.call(box.querySelectorAll('[data-page-visible]'),function(e){rows[Number(e.dataset.pageVisible)].visible=e.checked;});Array.prototype.forEach.call(box.querySelectorAll('[data-page-name]'),function(e){rows[Number(e.dataset.pageName)].name=e.value.trim()||rows[Number(e.dataset.pageName)].slug;});DB.saveSettings({categories:rows}).then(function(){settings.categories=rows;CN.applyCategorySettings(settings);fillCats();renderPageCategories();setMsg('#pageMsg','Saved.');}).catch(function(){setMsg('#pageMsg','Could not save category settings.');});}
+  document.getElementById('pageCategoryList').addEventListener('change',function(e){if(e.target.matches('[data-page-visible]'))savePageCategories();});document.getElementById('pageCategoryList').addEventListener('blur',function(e){if(e.target.matches('[data-page-name]'))savePageCategories();},true);
+  document.getElementById('pageCategoryForm').addEventListener('submit',function(e){e.preventDefault();var slug=$('#newCatSlug').value.trim().toLowerCase(),name=$('#newCatName').value.trim();if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)||!name||CN.categoryRows(settings).some(function(x){return x.slug===slug;})){setMsg('#pageMsg','Use a unique lowercase slug and name.');return;}var rows=CN.categoryRows(settings).concat([{slug:slug,name:name,visible:true}]);DB.saveSettings({categories:rows}).then(function(){settings.categories=rows;CN.applyCategorySettings(settings);fillCats();renderPageCategories();$('#newCatSlug').value='';$('#newCatName').value='';setMsg('#pageMsg','Added.');}).catch(function(){setMsg('#pageMsg','Could not add category.');});});
+  function fillSiteText(){var d={heroTagline:'Notes from a radiography student, for health science students',heroHeadline:'Hard topics, explained in plain language.',heroDescription:'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.',heroButtonOne:'Read the posts',heroButtonTwo:'About this blog'};['heroTagline','heroHeadline','heroDescription','heroButtonOne','heroButtonTwo'].forEach(function(k){document.getElementById(k).value=(settings&&settings[k])||d[k];});}
+  document.getElementById('siteTextForm').addEventListener('submit',function(e){e.preventDefault();var patch={heroTagline:$('#heroTagline').value.trim(),heroHeadline:$('#heroHeadline').value.trim(),heroDescription:$('#heroDescription').value.trim(),heroButtonOne:$('#heroButtonOne').value.trim(),heroButtonTwo:$('#heroButtonTwo').value.trim()};DB.saveSettings(patch).then(function(){Object.assign(settings,patch);setMsg('#siteTextMsg','Saved.');}).catch(function(){setMsg('#siteTextMsg','Could not save site text.');});});
   /* ---------- settings: logo, author photo, tagline, whatsapp ---------- */
   function showPreview(key, url) {
     var box = $('#' + key + 'Prev');
@@ -473,6 +491,7 @@
     box.hidden = false;
   }
   function fillSettings() {
+    renderPageCategories(); fillSiteText();
     $('#sLogo').value = settings.logo || ''; $('#sAuthor').value = settings.authorImage || '';
     $('#sWa').value = settings.whatsapp || ''; $('#sTagline').value = settings.tagline || '';
     showPreview('sLogo', settings.logo); showPreview('sAuthor', settings.authorImage);
@@ -530,7 +549,7 @@
     renderMode();
     return Promise.all([
       refreshPosts(), refreshComments(), refreshSubs(), refreshAds(),
-      DB.getSettings().then(function (s) { settings = s; fillSettings(); renderAds(); })
+      DB.getSettings().then(function (s) { settings = s; CN.applyCategorySettings(settings); fillCats(); fillSettings(); renderAds(); })
     ]).then(refreshDash).then(function () {
       if (!trWired) { trWired = true; wireTraffic(); } else { loadTraffic(); }
     });
@@ -556,6 +575,76 @@
       });
     });
   }
+  // Rich text editing keeps the selection in the editor while toolbar controls are used.
+  var bodyEditor = $('#bodyEditor'), savedRange = null;
+  function saveEditorRange() {
+    var sel = window.getSelection();
+    if (sel && sel.rangeCount && bodyEditor.contains(sel.anchorNode)) savedRange = sel.getRangeAt(0).cloneRange();
+  }
+  function restoreEditorRange() {
+    bodyEditor.focus();
+    if (savedRange) { var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
+  }
+  bodyEditor.addEventListener('keyup', saveEditorRange);
+  bodyEditor.addEventListener('mouseup', saveEditorRange);
+  bodyEditor.addEventListener('input', saveEditorRange);
+  document.querySelectorAll('[data-editor-command]').forEach(function (b) {
+    b.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    b.addEventListener('click', function () { restoreEditorRange(); document.execCommand(b.dataset.editorCommand, false, null); saveEditorRange(); });
+  });
+  document.querySelectorAll('[data-editor-block]').forEach(function (b) {
+    b.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    b.addEventListener('click', function () { restoreEditorRange(); document.execCommand('formatBlock', false, b.dataset.editorBlock); saveEditorRange(); });
+  });
+  $('#editorSize').addEventListener('change', function () {
+    restoreEditorRange();
+    document.execCommand('formatBlock', false, this.value === 'small' ? 'h3' : (this.value === 'large' ? 'h2' : 'p'));
+    saveEditorRange();
+  });
+  $('#insertLinkBtn').addEventListener('mousedown', function (e) { e.preventDefault(); });
+  $('#insertLinkBtn').addEventListener('click', function () {
+    restoreEditorRange();
+    var url = prompt('Enter a link URL (http or https):');
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) { toast('Link must start with http or https.'); return; }
+    document.execCommand('createLink', false, url);
+    saveEditorRange();
+  });
+  $('#insertImageBtn').addEventListener('mousedown', function (e) { e.preventDefault(); });
+  $('#insertImageBtn').addEventListener('click', function () {
+    saveEditorRange();
+    if (DB.mode !== 'supabase') { toast('Image upload needs a connection to Supabase. Reconnect, then try again.'); return; }
+    $('#bodyImageFiles').click();
+  });
+  $('#bodyImageFiles').addEventListener('change', function () {
+    var input = this, files = Array.prototype.slice.call(input.files || []), done = Promise.resolve();
+    if (!files.length) return;
+    if (DB.mode !== 'supabase') { toast('Image upload needs a connection to Supabase. Reconnect, then try again.'); input.value = ''; return; }
+    input.disabled = true;
+    setMsg('#bodyUploadMsg', 'Uploading image(s)…');
+    files.forEach(function (file) {
+      done = done.then(function () {
+        return DB.uploadImage(file).then(function (url) {
+          restoreEditorRange();
+          var img = document.createElement('img');
+          img.src = url; img.alt = file.name || ''; img.loading = 'lazy'; img.style.maxWidth = '100%'; img.style.height = 'auto';
+          var sel = window.getSelection(), range = savedRange;
+          if (range) {
+            range.deleteContents(); range.insertNode(img); range.setStartAfter(img); range.collapse(true);
+            savedRange = range;
+          } else {
+            bodyEditor.appendChild(img); savedRange = document.createRange();
+            savedRange.selectNodeContents(bodyEditor); savedRange.collapse(false);
+          }
+          sel.removeAllRanges(); sel.addRange(savedRange);
+          saveEditorRange();
+        });
+      });
+    });
+    done.then(function () { setMsg('#bodyUploadMsg', 'Uploaded. Save the post to keep it.'); })
+      .catch(function (err) { setMsg('#bodyUploadMsg', 'Image upload failed: ' + ((err && err.message) || 'check your Supabase connection') + '.'); toast('Image upload failed. Check your Supabase connection.'); })
+      .then(function () { input.value = ''; input.disabled = false; });
+  });
   wireUpload('#pCoverFile', '#pCover', '#pCoverMsg');
   wireUpload('#sLogoFile', '#sLogo', '#sLogoMsg', 'sLogo');
   wireUpload('#sAuthorFile', '#sAuthor', '#sAuthorMsg', 'sAuthor');

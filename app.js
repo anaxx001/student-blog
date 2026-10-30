@@ -15,10 +15,9 @@
       '<span class="link">Read this one →</span></a>';
   }
 
-  function renderCatLinks() {
-    $('#catLinks').innerHTML = Object.keys(SB.CATS).map(function (k) {
-      return '<a class="fchip" href="' + CN.catUrl(k) + '">' + CN.esc(SB.CATS[k]) + '</a>';
-    }).join('');
+  function renderCatLinks(settings) {
+    var el = document.getElementById('catLinks');
+    el.innerHTML = CN.visibleCategoryRows(settings).map(function (x) { return '<a class="fchip" href="' + CN.catUrl(x.slug) + '">' + CN.esc(x.name) + '</a>'; }).join('');
   }
 
   function renderGrid(list) {
@@ -34,6 +33,11 @@
     $('#navLogo').innerHTML = SB.logoHTML(s);
     $('#footLogo').innerHTML = SB.logoFootHTML(s);
     if (s.tagline && $('#footTag')) $('#footTag').textContent = s.tagline;
+    if(document.getElementById('heroTagline'))document.getElementById('heroTagline').textContent=s.heroTagline||'Notes from a radiography student, for health science students';
+    if(document.getElementById('heroHeadline'))document.getElementById('heroHeadline').textContent=s.heroHeadline||'Hard topics, explained in plain language.';
+    if(document.getElementById('heroDescription')&&s.heroDescription)document.getElementById('heroDescription').textContent=s.heroDescription;
+    if(document.getElementById('heroButtonOne'))document.getElementById('heroButtonOne').textContent=s.heroButtonOne||'Read the posts';
+    if(document.getElementById('heroButtonTwo'))document.getElementById('heroButtonTwo').textContent=s.heroButtonTwo||'About this blog';
     var src = SB.safeImg(s.authorImage);
     $('#authorRow').innerHTML = src ? '<button type="button" class="avatar-btn" aria-label="View author photo full size"><img class="avatar" src="' + CN.esc(src) + '" alt="Churchill Celestine"></button>' : '';
     $('#authorRow').hidden = !src;
@@ -105,7 +109,6 @@
   }
 
   CN.bindAdClicks();
-  renderCatLinks();
   $('#pulseOrn').innerHTML = SB.PULSE;
   initAbout();
   initLightbox();
@@ -114,7 +117,10 @@
     CN.modeBanner(document.getElementById('modeBanner'));
     return Promise.all([DB.listPosts({ limit: 10 }), DB.getSettings(), DB.listAds()]);
   }).then(function (r) {
-    var posts = CN.publishedOnly(r[0]), settings = r[1], ads = r[2];
+    var settings = r[1], ads = r[2];
+    CN.renderCategoryNav(settings); renderCatLinks(settings);
+    var visible = CN.visibleCategoryRows(settings).map(function(x){return x.slug;});
+    var posts = CN.publishedOnly(r[0]).filter(function(p){return visible.indexOf(p.category)!==-1;});
     renderBrand(settings);
     renderFeature(posts[0] || null);
     renderGrid(posts.slice(1));

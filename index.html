@@ -23,13 +23,11 @@
       <div class="sh-drop" id="catDrop">
         <button class="sh-link" type="button" id="catBtn" aria-expanded="false" aria-controls="catMenu" aria-haspopup="true">Categories<span class="sh-caret" aria-hidden="true"></span></button>
         <div class="sh-menu" id="catMenu" role="menu">
-        <a role="menuitem" href="category.html?c=anatomy">Anatomy</a>
-        <a role="menuitem" href="category.html?c=physiology">Physiology</a>
-        <a role="menuitem" href="category.html?c=biochemistry">Biochemistry</a>
-        <a role="menuitem" href="category.html?c=radiography">Radiography</a>
+        
         </div>
       </div>
       <a class="sh-link" href="index.html#about" data-about>About</a>
+      <a class="sh-link" href="saved.html">Saved</a>
     </nav>
     <button class="sh-burger" id="shBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="shSheet"><span></span><span></span><span></span></button>
   </div>
@@ -37,12 +35,10 @@
     <span class="sh-sheet-label">Go to</span>
     <a href="index.html" class="active">Home</a>
     <span class="sh-sheet-label">Categories</span>
-    <a class="sub" href="category.html?c=anatomy">Anatomy</a>
-    <a class="sub" href="category.html?c=physiology">Physiology</a>
-    <a class="sub" href="category.html?c=biochemistry">Biochemistry</a>
-    <a class="sub" href="category.html?c=radiography">Radiography</a>
+
     <span class="sh-sheet-label">Blog</span>
     <a href="index.html#about">About</a>
+    <a href="saved.html">Saved</a>
   </div>
 </header>
 
@@ -52,12 +48,12 @@
 <main class="wrap">
   <section id="home" class="hero" style="padding-top:50px">
     <div>
-      <span class="eyebrow">Notes from a radiography student, for health science students</span>
-      <h1>Hard topics, <span class="grad">explained in plain language.</span></h1>
-      <p class="lead muted">An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.</p>
+      <span class="eyebrow" id="heroTagline">Notes from a radiography student, for health science students</span>
+      <h1 id="heroHeadline">Hard topics, explained in plain language.</h1>
+      <p class="lead muted" id="heroDescription">An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.</p>
       <div class="cta">
-        <a class="btn btn-dark" href="#posts">Read the posts</a>
-        <a class="btn btn-line" href="#about">About this blog</a>
+        <a class="btn btn-dark" id="heroButtonOne" href="#posts">Read the posts</a>
+        <a class="btn btn-line" id="heroButtonTwo" href="#about">About this blog</a>
       </div>
       <p class="muted" style="font-size:.85rem;margin:12px 0 0"><a href="https://substack.com/@vonanaxx" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;text-underline-offset:3px">also on Substack</a></p>
       <div class="pulse" id="pulseOrn"></div>

@@ -89,7 +89,7 @@
       comments: [],
       daily: [],
       postViews: {},
-      settings: { adsOn: false, whatsapp: '', logo: '', authorImage: '' },
+      settings: { adsOn: false, whatsapp: '', logo: '', authorImage: '', categories: Object.keys(CATS).map(function (slug) { return { slug: slug, name: CATS[slug], visible: true }; }), heroTagline: 'Notes from a radiography student, for health science students', heroHeadline: 'Hard topics, explained in plain language.', heroDescription: 'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.', heroButtonOne: 'Read the posts', heroButtonTwo: 'About this blog' },
       version: 2.1
     };
   }
@@ -110,7 +110,8 @@
     s.comments = s.comments || [];
     s.daily = s.daily || [];
     s.postViews = s.postViews || {};
-    s.settings = Object.assign({ adsOn: false, whatsapp: '', logo: '', authorImage: '' }, s.settings || {});
+    s.settings = Object.assign({ adsOn: false, whatsapp: '', logo: '', authorImage: '', heroTagline: 'Notes from a radiography student, for health science students', heroHeadline: 'Hard topics, explained in plain language.', heroDescription: 'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.', heroButtonOne: 'Read the posts', heroButtonTwo: 'About this blog' }, s.settings || {});
+    if (!Array.isArray(s.settings.categories)) s.settings.categories = Object.keys(CATS).map(function (slug) { return { slug: slug, name: CATS[slug], visible: true }; });
     s.version = 2.1;
     return s;
   }
@@ -167,7 +168,7 @@
     },
     addComment: function (c) {
       var s = get();
-      s.comments.push({ id: uid('c'), postId: c.postId, name: c.name, text: c.text, status: 'pending', date: today() });
+      s.comments.push({ id: uid('c'), postId: c.postId, name: c.name, email: c.email || '', text: c.text, status: 'pending', date: today() });
       save(s);
     }
   };

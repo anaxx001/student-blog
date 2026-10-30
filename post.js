@@ -68,6 +68,43 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
   }
 
+  function safePostBody(value) {
+    var source = String(value == null ? '' : value);
+    if (!/<\/?(p|br|b|strong|i|em|u|h2|h3|ul|ol|li|a|img)\b/i.test(source)) {
+      return source.split(/\n\n+/).map(function (part) { return '<p>' + CN.esc(part).replace(/\n/g, '<br>') + '</p>'; }).join('');
+    }
+    var doc = new DOMParser().parseFromString(source, 'text/html');
+    var allowed = { p: 1, br: 1, b: 1, strong: 1, i: 1, em: 1, u: 1, h2: 1, h3: 1, ul: 1, ol: 1, li: 1, a: 1, img: 1 };
+    function clean(node) {
+      var out = document.createDocumentFragment();
+      Array.prototype.slice.call(node.childNodes).forEach(function (child) {
+        if (child.nodeType === 3) { out.appendChild(document.createTextNode(child.nodeValue)); return; }
+        if (child.nodeType !== 1) return;
+        var tag = child.tagName.toLowerCase();
+        if (!allowed[tag]) { out.appendChild(clean(child)); return; }
+        var el = document.createElement(tag);
+        if (tag === 'a') {
+          var href = child.getAttribute('href') || '';
+          if (/^(https?:\/\/|mailto:)/i.test(href) || /^\/(?!\/)/.test(href) || /^#[A-Za-z0-9_-]+$/.test(href)) el.setAttribute('href', href);
+        }
+        if (tag === 'img') {
+          var src = child.getAttribute('src') || '';
+          if (!/^https?:\/\//i.test(src)) return;
+          el.setAttribute('src', src);
+          el.setAttribute('alt', child.getAttribute('alt') || '');
+          el.setAttribute('loading', 'lazy');
+          el.style.maxWidth = '100%'; el.style.height = 'auto';
+        }
+        if (tag !== 'img' && tag !== 'br') el.appendChild(clean(child));
+        out.appendChild(el);
+      });
+      return out;
+    }
+    var root = doc.createElement('div');
+    root.appendChild(clean(doc.body));
+    return root.innerHTML;
+  }
+
   function renderPostNav(p, all) {
     var list = all.slice().sort(function (a, b) { return String(b.publishedAt || b.date).localeCompare(String(a.publishedAt || a.date)); });
     var i = list.findIndex(function (x) { return x.id === p.id; });
@@ -92,15 +129,16 @@
     });
   }
 
+  function bindBookmark(post) { var btn=document.getElementById('bookmarkBtn'); if(!btn)return; function get(){try{return JSON.parse(localStorage.getItem('anaxx_saved_posts')||'[]').map(String);}catch(e){return[];}} function paint(){var yes=get().indexOf(String(post.id))!==-1;btn.setAttribute('aria-pressed',yes?'true':'false');btn.textContent=yes?'Saved to reading list':'Save to reading list';} btn.addEventListener('click',function(){var a=get(),id=String(post.id);a=a.indexOf(id)===-1?a.concat([id]):a.filter(function(x){return x!==id;});localStorage.setItem('anaxx_saved_posts',JSON.stringify(a));paint();});paint();}
   function bindComments(postId) {
     $('#cForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      var name = $('#cName').value.trim(), text = $('#cText').value.trim();
+      var name = $('#cName').value.trim(), email = $('#cEmail').value.trim(), text = $('#cText').value.trim();
       if (!name || !text) return;
       $('#cMsg').textContent = 'Sending…';
-      DB.addComment(postId, name, text).then(function () {
+      DB.addComment(postId, name, text, email).then(function () {
         $('#cMsg').textContent = 'Thanks. Your comment shows once it is approved.';
-        $('#cName').value = ''; $('#cText').value = '';
+        $('#cName').value = ''; $('#cEmail').value = ''; $('#cText').value = '';
       }).catch(function () { $('#cMsg').textContent = 'Could not send right now. Try again later.'; });
     });
   }
@@ -132,7 +170,7 @@
     $('#meta').innerHTML = '<span class="byline-name">' + CN.esc(p.author || 'Churchill Celestine') + '</span>' +
       '<span class="byline-dot" aria-hidden="true">·</span><time>' + CN.esc(CN.fmt(p.date)) + '</time>' +
       '<span class="byline-dot" aria-hidden="true">·</span><span>' + CN.readMins(p) + ' min read</span>';
-    $('#body').innerHTML = String(p.body).split(/\n\n+/).map(function (par) { return '<p>' + CN.esc(par) + '</p>'; }).join('');
+    $('#body').innerHTML = safePostBody(p.body);
     // 'inside post' ads render between the article and the action bar; 2+ stack into a rotator
     var inlineAds = CN.adsForSlot(r[3] || [], settings, 'inline');
     var adBox = $('#adInline');
@@ -153,6 +191,7 @@
     renderPostNav(p, all);
     renderRelated(p, all);
     bindReactions(p.id);
+    bindBookmark(p);
     bindComments(p.id);
     DB.getReactions(p.id).then(renderReactions);
     DB.listComments(p.id).then(renderComments);

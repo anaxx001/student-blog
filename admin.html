@@ -76,6 +76,8 @@
       <button class="tab on" data-tab="dash" type="button">Dashboard</button>
       <button class="tab" data-tab="posts" type="button">Posts</button>
       <button class="tab" data-tab="comments" type="button">Comments</button>
+      <button class="tab" data-tab="pages" type="button">Pages</button>
+      <button class="tab" data-tab="sitetext" type="button">Site text</button>
       <button class="tab" data-tab="subs" type="button">Subscribers</button>
       <button class="tab" data-tab="ads" type="button">Ads</button>
       <button class="tab" data-tab="settings" type="button">Settings</button>
@@ -134,8 +136,26 @@
         </label>
         <label class="lbl">Author<input class="field" id="pAuthor" value="Churchill Celestine"></label>
         <label class="lbl">Excerpt (shown on cards)<textarea class="field" id="pExcerpt" rows="2" maxlength="400"></textarea></label>
-        <label class="lbl">Body (blank line between paragraphs)<textarea class="field" id="pBody" rows="14"></textarea></label>
-        <label class="lbl">Cover image URL (optional)<input class="field" id="pCover" placeholder="https://..."></label>
+        <div class="lbl post-body-label">Body
+          <div class="editor-toolbar" role="toolbar" aria-label="Post body formatting">
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="bold" aria-label="Bold"><b>B</b></button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="italic" aria-label="Italic"><i>I</i></button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="underline" aria-label="Underline"><u>U</u></button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-block="h2">H2</button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-block="h3">H3</button>
+            <label class="editor-size-label">Text size
+              <select class="field editor-size" id="editorSize"><option value="small">Small</option><option value="normal" selected>Normal</option><option value="large">Large</option></select>
+            </label>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="insertUnorderedList">Bullets</button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="insertOrderedList">Numbered</button>
+            <button class="btn btn-line editor-tool" id="insertLinkBtn" type="button">Insert link</button>
+            <button class="btn btn-line editor-tool" id="insertImageBtn" type="button">Insert image</button>
+          </div>
+          <div class="field post-editor" id="bodyEditor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Post body"></div>
+          <input id="bodyImageFiles" type="file" accept="image/*" multiple hidden>
+          <textarea class="field" id="pBody" hidden></textarea>
+          <div class="admin-note" id="bodyUploadMsg" aria-live="polite"></div>
+        </div>
         <label class="lbl">or upload an image (jpg, png, webp, gif; max 5MB)<input class="field" type="file" id="pCoverFile" accept="image/*"></label>
         <div class="admin-note" id="pCoverMsg"></div>
         <label class="lbl">Read time (minutes, auto-estimated if blank)<input class="field" id="pRead" type="number" min="1"></label>
@@ -169,6 +189,8 @@
       </div>
     </section>
 
+    <section data-pane="pages" hidden><div class="glass pane-card"><h2 class="h2">Pages</h2><p class="muted small">Hidden categories and posts remain intact in admin.</p><div id="pageCategoryList"></div><form class="form" id="pageCategoryForm"><h3>Add category</h3><div class="row2"><input class="field" id="newCatSlug" placeholder="lowercase-slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" required><input class="field" id="newCatName" placeholder="Display name" required></div><button class="btn btn-dark" type="submit">Add category</button><div class="admin-note" id="pageMsg"></div></form></div></section>
+    <section data-pane="sitetext" hidden><form class="glass pane-card form" id="siteTextForm"><h2 class="h2">Site text</h2><label class="lbl">Top tagline<input class="field" id="heroTagline"></label><label class="lbl">Headline<input class="field" id="heroHeadline"></label><label class="lbl">Description<textarea class="field" id="heroDescription"></textarea></label><div class="row2"><label class="lbl">First button<input class="field" id="heroButtonOne"></label><label class="lbl">Second button<input class="field" id="heroButtonTwo"></label></div><button class="btn btn-dark" type="submit">Save site text</button><div class="admin-note" id="siteTextMsg"></div></form></section>
     <section data-pane="subs" hidden>
       <div class="glass pane-card">
         <div class="pane-head">

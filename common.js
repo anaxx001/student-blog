@@ -3,6 +3,26 @@
   var C = {};
   C.esc = function (s) { return window.SB.esc(s); };
   C.catName = function (k) { return window.SB.CATS[k] || k; };
+  C.categoryRows = function (settings) { var rows=settings && settings.categories; if(!Array.isArray(rows)) rows=Object.keys(window.SB.CATS).map(function(slug){return {slug:slug,name:window.SB.CATS[slug],visible:true};}); return rows; };
+  C.visibleCategoryRows = function (settings) { return C.categoryRows(settings).filter(function (x) { return x.visible !== false; }); };
+  C.applyCategorySettings = function (settings) {
+    var cats = window.SB.CATS;
+    Object.keys(cats).forEach(function (k) { delete cats[k]; });
+    C.categoryRows(settings).forEach(function (x) { cats[x.slug] = x.name || x.slug; });
+  };
+  C.renderCategoryNav = function (settings) {
+    C.applyCategorySettings(settings);
+    var rows = C.visibleCategoryRows(settings), menu = document.getElementById('catMenu'), sheet = document.getElementById('shSheet');
+    if (menu) menu.innerHTML = rows.map(function (x) { return '<a role="menuitem" href="' + C.catUrl(x.slug) + '">' + C.esc(x.name || x.slug) + '</a>'; }).join('');
+    if (sheet) {
+      var labels = sheet.querySelectorAll('.sh-sheet-label'), label = Array.prototype.filter.call(labels, function (x) { return x.textContent.trim() === 'Categories'; })[0];
+      if (label) {
+        var next = label.nextElementSibling;
+        while (next && !next.classList.contains('sh-sheet-label')) { var rm = next; next = next.nextElementSibling; if (rm.classList.contains('sub')) rm.remove(); }
+        rows.forEach(function (x) { var a = document.createElement('a'); a.className = 'sub'; a.href = C.catUrl(x.slug); a.textContent = x.name || x.slug; label.parentNode.insertBefore(a, label.nextElementSibling); });
+      }
+    }
+  };
   C.fmt = function (d) {
     if (!d) return '';
     var dt = new Date(String(d).length > 10 ? d : d + 'T00:00:00');
@@ -27,7 +47,10 @@
   };
   C.slug = function (s) { return encodeURIComponent(s); };
   C.postUrl = function (p) { return 'post.html?p=' + C.slug(p.slug); };
+  C.savedIds=function(){try{return JSON.parse(localStorage.getItem('anaxx_saved_posts')||'[]').map(String);}catch(e){return [];}};
+  C.savedPosts=function(list){var ids=C.savedIds();return list.filter(function(p){return ids.indexOf(String(p.id))!==-1;});};
   C.catUrl = function (k) { return 'category.html?c=' + C.slug(k); };
+  C.readingListItem=function(p){return '<article class="glass saved-item"><div><h3>'+C.esc(p.title)+'</h3><p class="muted small">'+C.esc(C.catName(p.category))+' · '+C.esc(C.fmt(p.date))+'</p></div><div class="saved-actions"><a class="btn btn-line" href="'+C.postUrl(p)+'">Read post</a><button class="btn btn-line" type="button" data-remove-saved="'+C.esc(p.id)+'">Remove</button></div></article>';};
   C.card = function (p, feat) {
     return '<a class="post glass' + (feat ? ' feature-span' : '') + '" href="' + C.postUrl(p) + '">' +
       C.coverHTML(p) +

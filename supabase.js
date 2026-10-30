@@ -251,7 +251,7 @@
   /* ---------- comments ---------- */
   function commentFromRow(r, postTitle) {
     var status = r.spam ? 'spam' : (r.approved ? 'approved' : 'pending');
-    return { id: String(r.id), postId: String(r.post_id), name: r.name, text: r.body,
+    return { id: String(r.id), postId: String(r.post_id), name: r.name, email: r.email || '', text: r.body,
       approved: !!r.approved, spam: !!r.spam, status: status, date: dayOf(r.created_at), postTitle: postTitle || '' };
   }
   DB.listComments = function (postId) {
@@ -262,7 +262,7 @@
           .catch(function (e) { fail(e); return []; });
       }
       return store().get().comments.filter(function (c) { return String(c.postId) === String(postId) && c.status === 'approved'; })
-        .map(function (c) { return { id: String(c.id), postId: String(c.postId), name: c.name, text: c.text, approved: true, date: c.date }; });
+        .map(function (c) { return { id: String(c.id), postId: String(c.postId), name: c.name, email: c.email || '', text: c.text, approved: true, date: c.date }; });
     });
   };
   // Admin list: all comments with the post title. filter: 'pending' | 'approved' | 'all'
@@ -282,17 +282,17 @@
       var posts = {};
       s.posts.forEach(function (p) { posts[String(p.id)] = p.title; });
       return s.comments.filter(function (c) { return filter === 'all' || c.status === filter; })
-        .map(function (c) { return { id: String(c.id), postId: String(c.postId), name: c.name, text: c.text,
+        .map(function (c) { return { id: String(c.id), postId: String(c.postId), name: c.name, email: c.email || '', text: c.text,
           approved: c.status === 'approved', date: c.date, postTitle: posts[String(c.postId)] || 'deleted post', status: c.status }; });
     });
   };
-  DB.addComment = function (postId, name, text) {
+  DB.addComment = function (postId, name, text, email) {
     return DB.init().then(function () {
       if (live()) {
-        return withTimeout(client.from('comments').insert({ post_id: postId, name: name, body: text, approved: false }))
+        return withTimeout(client.from('comments').insert({ post_id: postId, name: name, email: email || null, body: text, approved: false }))
           .then(function (r) { if (r.error) throw r.error; });
       }
-      store().addComment({ postId: postId, name: name, text: text });
+      store().addComment({ postId: postId, name: name, email: email || '', text: text });
     });
   };
   DB.setCommentApproved = function (id, approved) {
@@ -418,7 +418,7 @@
   };
 
   /* ---------- site settings (logo, author photo, whatsapp, tagline, ads toggle) ---------- */
-  function defaultSettings() { return { adsOn: false, whatsapp: '', logo: '', authorImage: '', tagline: '' }; }
+  function defaultSettings() { return { adsOn: false, whatsapp: '', logo: '', authorImage: '', tagline: '', categories: Object.keys(window.SB.CATS).map(function(slug){return {slug:slug,name:window.SB.CATS[slug],visible:true};}), heroTagline: 'Notes from a radiography student, for health science students', heroHeadline: 'Hard topics, explained in plain language.', heroDescription: 'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.', heroButtonOne: 'Read the posts', heroButtonTwo: 'About this blog' }; }
   DB.getSettings = function () {
     return DB.init().then(function () {
       if (live()) {

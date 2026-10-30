@@ -32,6 +32,7 @@
         </div>
       </div>
       <a class="sh-link" href="index.html#about" data-about>About</a>
+      <a class="sh-link" href="saved.html">Saved</a>
     </nav>
     <button class="sh-burger" id="shBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="shSheet"><span></span><span></span><span></span></button>
   </div>
@@ -45,6 +46,7 @@
     <a class="sub" href="category.html?c=radiography">Radiography</a>
     <span class="sh-sheet-label">Blog</span>
     <a href="index.html#about">About</a>
+    <a href="saved.html">Saved</a>
   </div>
 </header>
 
@@ -76,6 +78,7 @@
           <b data-count="save">0</b>
         </button>
       </div>
+      <button class="btn btn-line" id="bookmarkBtn" type="button" aria-pressed="false">Save to reading list</button>
       <div class="share" role="group" aria-label="Share this post">
         <div class="share-wrap">
           <button class="sh share-btn" type="button" id="shareBtn" aria-expanded="false" aria-haspopup="true" title="Share">
@@ -101,6 +104,7 @@
           <span class="cav" id="cAv" aria-hidden="true">+</span>
           <div class="cform-main">
             <input class="field cform-name" id="cName" placeholder="Your name" aria-label="Your name" maxlength="80" required>
+            <input class="field" id="cEmail" name="email" type="email" autocomplete="email" placeholder="Email for a reply notification (optional)" aria-label="Email for a reply notification, optional" maxlength="254">
             <div class="cinput">
               <input class="field" id="cText" placeholder="Add a comment" aria-label="Comment" maxlength="2000" required>
               <button class="csend" type="submit" aria-label="Send comment" title="Send comment">
