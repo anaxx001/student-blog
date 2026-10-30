@@ -610,5 +610,6 @@
     }
   };
 
+  window.SB_EMAIL_CONFIG = { url: SB_URL, anonKey: SB_ANON };
   window.DB = DB;
 })();

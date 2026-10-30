@@ -5,6 +5,23 @@
   var posts = [], ads = [], subs = [], settings = null;
   var currentEmail = '', recovering = false;
 
+  function emailFunction(payload) {
+    return DB.auth.session().then(function (session) {
+      var cfg = window.SB_EMAIL_CONFIG;
+      if (!cfg || !session || !session.access_token) throw new Error('Admin session expired. Log in again.');
+      return fetch(cfg.url + '/functions/v1/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: cfg.anonKey, Authorization: 'Bearer ' + session.access_token },
+        body: JSON.stringify(payload)
+      });
+    }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Email service returned an error.');
+        return data;
+      });
+    });
+  }
+
   function toast(m) { CN.toast(m); }
   function setMsg(id, m) { $(id).textContent = m || ''; }
   function friendly(err) {
@@ -331,10 +348,16 @@
     setMsg('#postMsg', 'Saving…');
     var saveButton = $('#postForm button[type="submit"]');
     saveButton.disabled = true;
-    DB.savePost(payload).then(function () {
+    DB.savePost(payload).then(function (savedPost) {
       toast(status === 'published' ? 'Published.' : 'Draft saved.');
       $('#postForm').hidden = true;
-      return refreshAll();
+      return refreshAll().then(function () {
+        if (status !== 'published') return;
+        var excerpt = payload.excerpt || String(payload.body || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150);
+        return emailFunction({ kind: 'publish', postId: savedPost.id, slug: savedPost.slug, title: savedPost.title, excerpt: excerpt })
+          .then(function (result) { toast('Subscriber email sent to ' + result.sent + ' address' + (result.sent === 1 ? '' : 'es') + '.'); })
+          .catch(function (err) { toast('Post published, but email failed: ' + ((err && err.message) || 'unknown error')); });
+      });
     }).catch(function (err) { setMsg('#postMsg', 'Could not save: ' + ((err && err.message) || 'unknown error') + '. Your post is not stored yet.'); })
       .then(function () { saveButton.disabled = false; }, function () { saveButton.disabled = false; });
   });
@@ -356,7 +379,7 @@
         ' · ' + status + '</span><p>' + CN.esc(c.text) + '</p></div>' +
         '<div class="row-btns">' +
         (status === 'approved' ? '<button class="btn btn-line" data-reply="' + CN.esc(c.id) + '" type="button">Reply</button>' : '<button class="btn btn-dark" data-approve="' + CN.esc(c.id) + '" type="button">Approve</button>') +
-        (status === 'approved' ? '<div class="reply-box" data-reply-box="' + CN.esc(c.id) + '" hidden><p class="muted small">' + (c.email ? 'Notification opens as a mailto draft.' : 'No email was left, so no notification is possible.') + '</p><textarea class="field" data-reply-text="' + CN.esc(c.id) + '" placeholder="Write your reply"></textarea><button class="btn btn-dark" data-send-reply="' + CN.esc(c.id) + '" type="button">Prepare email reply</button></div>' : '') +
+        (status === 'approved' ? '<div class="reply-box" data-reply-box="' + CN.esc(c.id) + '" hidden><p class="muted small">' + (c.email ? 'Send a notification email, or open a mailto draft as fallback.' : 'No email was left, so no notification is possible.') + '</p><textarea class="field" data-reply-text="' + CN.esc(c.id) + '" placeholder="Write your reply"></textarea>' + (c.email ? '<button class="btn btn-dark" data-send-reply="' + CN.esc(c.id) + '" type="button">Send reply notification</button><button class="btn btn-line" data-mailto-reply="' + CN.esc(c.id) + '" type="button">Prepare email reply</button>' : '') + '</div>' : '') +
         (status === 'spam' ? '' : '<button class="btn btn-line" data-spam="' + CN.esc(c.id) + '" type="button">Spam</button>') +
         '<button class="btn btn-line danger" data-cdel="' + CN.esc(c.id) + '" type="button">Delete</button></div></div>';
     }).join('');
@@ -370,7 +393,7 @@
     var p;
     if (t.dataset.approve) p = DB.setCommentApproved(t.dataset.approve, true);
     else if (t.dataset.reply) { var bx=document.querySelector('[data-reply-box=\"'+t.dataset.reply+'\"]'); if(bx) bx.hidden=!bx.hidden; return; }
-    else if (t.dataset.sendReply) { var c=commentRows.filter(function(x){return String(x.id)===String(t.dataset.sendReply);})[0],replyField=document.querySelector('[data-reply-text=\"'+t.dataset.sendReply+'\"]'),txt=replyField?replyField.value.trim():''; if(!c||!txt)return; if(!c.email){toast('No email was left for this comment.');return;} var post=posts.filter(function(x){return String(x.id)===String(c.postId);})[0]; if(!post){toast('Could not find the post link.');return;} var url=new URL(CN.postUrl(post),location.href).href,sub='your comment on Anaxx Science Hub got a reply',body=txt+'\n\nRead the post: '+url;location.href='mailto:'+c.email+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(body);return; }
+    else if (t.dataset.sendReply || t.dataset.mailtoReply) { var replyId = t.dataset.sendReply || t.dataset.mailtoReply, c=commentRows.filter(function(x){return String(x.id)===String(replyId);})[0],replyField=document.querySelector('[data-reply-text=\"'+replyId+'\"]'),txt=replyField?replyField.value.trim():''; if(!c||!txt)return; if(!c.email){toast('No email was left for this comment.');return;} var post=posts.filter(function(x){return String(x.id)===String(c.postId);})[0]; if(!post){toast('Could not find the post link.');return;} var url=new URL(CN.postUrl(post),location.href).href; if(t.dataset.mailtoReply){var sub='your comment on Anaxx Science Hub got a reply',body=txt+'\n\nRead the post: '+url;location.href='mailto:'+c.email+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(body);return;} t.disabled=true; emailFunction({kind:'reply',email:c.email,replyText:txt,postTitle:c.postTitle,postUrl:url}).then(function(){toast('Reply notification sent.');}).catch(function(err){toast('Could not send reply notification: '+((err&&err.message)||'unknown error')+'. Use Prepare email reply as fallback.');}).then(function(){t.disabled=false;}); return; }
     else if (t.dataset.spam) p = DB.setCommentSpam(t.dataset.spam);
     else if (t.dataset.cdel) { if (!confirm('Delete this comment?')) return; p = DB.deleteComment(t.dataset.cdel); }
     if (p) p.then(function () { return refreshComments().then(refreshDash); }).catch(function () { toast('Could not update that comment.'); });
