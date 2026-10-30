@@ -291,7 +291,9 @@
     $('#pExcerpt').value = p ? p.excerpt : '';
     $('#pBody').value = p ? p.body : '';
     $('#bodyEditor').innerHTML = p ? editorContent(p.body) : '';
-    $('#editorSize').value = 'normal';
+    savedRange = null;
+    document.querySelectorAll('.editor-tool').forEach(function (b) { b.classList.remove('is-active'); b.setAttribute('aria-pressed', 'false'); });
+    $('#editorSize').value = '';
     setMsg('#bodyUploadMsg', '');
     $('#pCover').value = p ? p.cover : '';
     $('#pRead').value = p ? p.readTime : '';
@@ -311,11 +313,11 @@
   $('#postForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var title = $('#pTitle').value.trim();
-    if (!title) return setMsg('#postMsg', 'Add a title.');
+    if (!title) { setMsg('#postMsg', 'Add a title.'); $('#pTitle').focus(); return; }
     $('#pBody').value = $('#bodyEditor').innerHTML;
     var body = $('#pBody').value.trim();
     var status = $('#pStatus').value;
-    if (status === 'published' && !body) return setMsg('#postMsg', 'A published post needs a body.');
+    if (status === 'published' && !body) { setMsg('#postMsg', 'A published post needs a body.'); bodyEditor.focus(); return; }
     var words = body.replace(/<[^>]*>/g, ' ').split(/\s+/).filter(Boolean).length;
     var read = parseInt($('#pRead').value, 10) || Math.max(1, Math.ceil(words / 230));
     var id = $('#pId').value || null;
@@ -327,11 +329,14 @@
       publishedAt: prev && prev.status === 'published' && prev.publishedAt ? prev.publishedAt : null
     };
     setMsg('#postMsg', 'Saving…');
+    var saveButton = $('#postForm button[type="submit"]');
+    saveButton.disabled = true;
     DB.savePost(payload).then(function () {
       toast(status === 'published' ? 'Published.' : 'Draft saved.');
       $('#postForm').hidden = true;
       return refreshAll();
-    }).catch(function (err) { setMsg('#postMsg', 'Could not save: ' + ((err && err.message) || 'unknown error') + '. Your post is not stored yet.'); });
+    }).catch(function (err) { setMsg('#postMsg', 'Could not save: ' + ((err && err.message) || 'unknown error') + '. Your post is not stored yet.'); })
+      .then(function () { saveButton.disabled = false; }, function () { saveButton.disabled = false; });
   });
   $('#deletePost').addEventListener('click', function () {
     var id = $('#pId').value;
@@ -580,14 +585,45 @@
   function saveEditorRange() {
     var sel = window.getSelection();
     if (sel && sel.rangeCount && bodyEditor.contains(sel.anchorNode)) savedRange = sel.getRangeAt(0).cloneRange();
+    updateEditorToolbar();
   }
   function restoreEditorRange() {
     bodyEditor.focus();
     if (savedRange) { var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); }
   }
+  function updateEditorToolbar() {
+    var hasEditorSelection = !!(savedRange && bodyEditor.contains(savedRange.startContainer));
+    document.querySelectorAll('[data-editor-command]').forEach(function (b) {
+      var active = false;
+      try { active = hasEditorSelection && document.queryCommandState(b.dataset.editorCommand); } catch (ignore) {}
+      b.classList.toggle('is-active', !!active);
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-editor-block]').forEach(function (b) {
+      var node = hasEditorSelection && savedRange.startContainer;
+      if (node && node.nodeType === 3) node = node.parentNode;
+      var active = false;
+      while (node && bodyEditor.contains(node)) {
+        if (node.tagName && node.tagName.toLowerCase() === b.dataset.editorBlock.toLowerCase()) { active = true; break; }
+        node = node.parentNode;
+      }
+      b.classList.toggle('is-active', active);
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
   bodyEditor.addEventListener('keyup', saveEditorRange);
   bodyEditor.addEventListener('mouseup', saveEditorRange);
   bodyEditor.addEventListener('input', saveEditorRange);
+  document.addEventListener('selectionchange', function () {
+    var sel = window.getSelection();
+    if (sel && sel.rangeCount && bodyEditor.contains(sel.anchorNode)) {
+      savedRange = sel.getRangeAt(0).cloneRange();
+      updateEditorToolbar();
+    } else if (!bodyEditor.contains(document.activeElement)) {
+      savedRange = null;
+      updateEditorToolbar();
+    }
+  });
   document.querySelectorAll('[data-editor-command]').forEach(function (b) {
     b.addEventListener('mousedown', function (e) { e.preventDefault(); });
     b.addEventListener('click', function () { restoreEditorRange(); document.execCommand(b.dataset.editorCommand, false, null); saveEditorRange(); });
@@ -596,9 +632,10 @@
     b.addEventListener('mousedown', function (e) { e.preventDefault(); });
     b.addEventListener('click', function () { restoreEditorRange(); document.execCommand('formatBlock', false, b.dataset.editorBlock); saveEditorRange(); });
   });
+  $('#editorSize').addEventListener('mousedown', saveEditorRange);
   $('#editorSize').addEventListener('change', function () {
-    var sizes = { small: '0.85em', normal: '1em', large: '1.25em' };
-    var size = sizes[this.value] || sizes.normal, sel, range, span, fragment;
+    var px = parseInt(this.value, 10), sel, range, span, fragment;
+    if (isNaN(px) || px < 1 || px > 40) return;
     restoreEditorRange();
     sel = window.getSelection();
     if (!sel || !sel.rangeCount) return;
@@ -606,23 +643,25 @@
     if (!bodyEditor.contains(range.commonAncestorContainer)) return;
     if (range.collapsed) {
       span = document.createElement('span');
-      span.style.fontSize = size;
-      span.appendChild(document.createTextNode('​'));
+      span.style.fontSize = px + 'px';
+      span.appendChild(document.createTextNode('\u200b'));
       range.insertNode(span);
       range.setStart(span.firstChild, 1);
       range.collapse(true);
     } else {
       fragment = range.extractContents();
       span = document.createElement('span');
-      span.style.fontSize = size;
+      span.style.fontSize = px + 'px';
       span.appendChild(fragment);
       range.insertNode(span);
       range.selectNodeContents(span);
       range.collapse(false);
     }
-    sel.removeAllRanges();
-    sel.addRange(range);
-    savedRange = range.cloneRange();
+    if (range) {
+      sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      savedRange = range.cloneRange();
+    }
+    this.value = '';
     saveEditorRange();
   });
   $('#insertLinkBtn').addEventListener('mousedown', function (e) { e.preventDefault(); });

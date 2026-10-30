@@ -89,7 +89,7 @@
         }
         if (tag === 'span') {
           var fontSize = child.style && child.style.fontSize;
-          if (fontSize === '0.85em' || fontSize === '1em' || fontSize === '1.25em') el.style.fontSize = fontSize;
+          if (/^(?:[1-9]|[1-3][0-9]|40)px$/.test(fontSize)) el.style.fontSize = fontSize;
         }
         if (tag === 'img') {
           var src = child.getAttribute('src') || '';

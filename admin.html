@@ -130,7 +130,7 @@
       <form class="glass pane-card form" id="postForm" hidden>
         <h3 id="postFormTitle">New post</h3>
         <input type="hidden" id="pId">
-        <label class="lbl">Title<input class="field" id="pTitle" required maxlength="160"></label>
+        <label class="lbl">Title<input class="field" id="pTitle" maxlength="160"></label>
         <label class="lbl">Category
           <select class="field" id="pCat"></select>
         </label>
@@ -144,7 +144,7 @@
             <button class="btn btn-line editor-tool" type="button" data-editor-block="h2">H2</button>
             <button class="btn btn-line editor-tool" type="button" data-editor-block="h3">H3</button>
             <label class="editor-size-label">Text size
-              <select class="field editor-size" id="editorSize"><option value="small">Small</option><option value="normal" selected>Normal</option><option value="large">Large</option></select>
+              <select class="field editor-size" id="editorSize" aria-label="Text size in pixels"><option value="">Size (px)</option><option value="1">1 px</option><option value="2">2 px</option><option value="3">3 px</option><option value="4">4 px</option><option value="5">5 px</option><option value="6">6 px</option><option value="7">7 px</option><option value="8">8 px</option><option value="9">9 px</option><option value="10">10 px</option><option value="11">11 px</option><option value="12">12 px</option><option value="13">13 px</option><option value="14">14 px</option><option value="15">15 px</option><option value="16">16 px</option><option value="17">17 px</option><option value="18">18 px</option><option value="19">19 px</option><option value="20">20 px</option><option value="21">21 px</option><option value="22">22 px</option><option value="23">23 px</option><option value="24">24 px</option><option value="25">25 px</option><option value="26">26 px</option><option value="27">27 px</option><option value="28">28 px</option><option value="29">29 px</option><option value="30">30 px</option><option value="31">31 px</option><option value="32">32 px</option><option value="33">33 px</option><option value="34">34 px</option><option value="35">35 px</option><option value="36">36 px</option><option value="37">37 px</option><option value="38">38 px</option><option value="39">39 px</option><option value="40">40 px</option></select>
             </label>
             <button class="btn btn-line editor-tool" type="button" data-editor-command="insertUnorderedList">Bullets</button>
             <button class="btn btn-line editor-tool" type="button" data-editor-command="insertOrderedList">Numbered</button>

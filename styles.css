@@ -323,3 +323,6 @@ body::after{display:none}
 .article-body p { margin: 14px 0; }
 .article-body ul, .article-body ol { padding-left: 1.5em; margin: 12px 0; }
 .article-body h2, .article-body h3 { margin: 1.2em 0 .5em; color: var(--accent-ink); }
+
+/* Rich post formatting stays visibly bold in the published article. */
+.article-body b, .article-body strong { font-weight: 700 !important; }
