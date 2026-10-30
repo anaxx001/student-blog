@@ -90,13 +90,15 @@
 }
 /* ---- mobile density: one-row action bar, Medium-style comments ---- */
 @media (max-width: 600px) {
-  .action-bar { flex-wrap: nowrap; gap: 8px; margin: 18px 0 12px; padding: 8px 0; min-height: 0; }
-  .reactions { gap: 6px; flex: 0 1 auto; min-width: 0; }
-  .share { gap: 6px; flex: 0 0 auto; }
-  .react { min-height: 40px; min-width: 0; padding: 0 10px; font-size: 13px; gap: 5px; border-color: #d7ebe6; background: #fff; }
+  .action-bar { flex-wrap: wrap; justify-content: flex-start; gap: 8px; margin: 18px 0 12px; padding: 8px 0; min-height: 0; }
+  .action-bar .reactions { gap: 6px; flex: 0 1 auto; flex-wrap: nowrap; min-width: 0; margin: 0; padding: 0; justify-content: flex-start; }
+  .action-bar .share { gap: 6px; flex: 0 0 auto; margin: 0 0 0 auto; padding: 0; }
+  .action-bar .react { flex: 0 0 auto; min-height: 38px; min-width: 0; padding: 0 9px; font-size: 13px; gap: 5px; border-color: #d7ebe6; background: #fff; white-space: nowrap; }
   .react svg { width: 18px; height: 18px; }
-  .sh, .sh.sh { width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; border-color: #d7ebe6; background: #fff; }
-  .sh svg { width: 17px; height: 17px; }
+  .action-bar #bookmarkBtn { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; min-height: 38px; min-width: 0; padding: 0 11px; gap: 6px; border-radius: 999px; font-size: 13px; white-space: nowrap; line-height: 1; }
+  .action-bar #bookmarkBtn svg { width: 17px; height: 17px; flex: 0 0 auto; }
+  .action-bar .share-btn { width: auto; min-width: 0; height: 38px; min-height: 38px; padding: 0 11px; gap: 6px; white-space: nowrap; border-color: #d7ebe6; background: #fff; }
+  .action-bar .share-btn svg { width: 17px; height: 17px; }
   .post-nav { margin: 18px 0; gap: 10px; }
   .pn-link { padding: 12px 14px; }
   .pn-link span { font-size: 15px; }
@@ -120,7 +122,7 @@
 @media (max-width: 360px) {
   .react { padding: 0 8px; }
   .action-bar { gap: 6px; }
-  .sh, .sh.sh { width: 36px; height: 36px; min-width: 36px; min-height: 36px; }
+  .action-bar .share-btn { width: auto; height: 36px; min-width: 0; min-height: 36px; padding: 0 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .to-top, .pn-link, .react, .sh { transition: none; } }
 

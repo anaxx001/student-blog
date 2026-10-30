@@ -29,8 +29,9 @@
     return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   };
   C.readMins = function (p) {
-    var words = String(p.body || '').trim().split(/\s+/).filter(Boolean).length;
-    if (!words) return Math.max(1, parseInt(p.readTime, 10) || 1);
+    var saved = parseInt(p.readTime, 10);
+    if (saved > 0) return saved;
+    var words = String(p.body || '').replace(/<[^>]*>/g, ' ').trim().split(/\s+/).filter(Boolean).length;
     return Math.max(1, Math.ceil(words / 230));
   };
   C.coverHTML = function (p, cls) {

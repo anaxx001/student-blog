@@ -133,7 +133,7 @@
     });
   }
 
-  function bindBookmark(post) { var btn=document.getElementById('bookmarkBtn'); if(!btn)return; function get(){try{return JSON.parse(localStorage.getItem('anaxx_saved_posts')||'[]').map(String);}catch(e){return[];}} function paint(){var yes=get().indexOf(String(post.id))!==-1;btn.setAttribute('aria-pressed',yes?'true':'false');btn.textContent=yes?'Saved to reading list':'Save to reading list';} btn.addEventListener('click',function(){var a=get(),id=String(post.id);a=a.indexOf(id)===-1?a.concat([id]):a.filter(function(x){return x!==id;});localStorage.setItem('anaxx_saved_posts',JSON.stringify(a));paint();});paint();}
+  function bindBookmark(post) { var btn=document.getElementById('bookmarkBtn'); if(!btn)return; function get(){try{return JSON.parse(localStorage.getItem('anaxx_saved_posts')||'[]').map(String);}catch(e){return[];}} function paint(){var yes=get().indexOf(String(post.id))!==-1;btn.setAttribute('aria-pressed',yes?'true':'false');btn.querySelector('span').textContent=yes?'Saved':'Save';} btn.addEventListener('click',function(){var a=get(),id=String(post.id);a=a.indexOf(id)===-1?a.concat([id]):a.filter(function(x){return x!==id;});localStorage.setItem('anaxx_saved_posts',JSON.stringify(a));paint();});paint();}
   function bindComments(postId) {
     $('#cForm').addEventListener('submit', function (e) {
       e.preventDefault();
