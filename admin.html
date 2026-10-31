@@ -186,6 +186,14 @@
             <option value="all">All</option>
           </select>
         </div>
+        <form class="form" id="authorCommentForm" style="margin:14px 0">
+          <h3>Post a comment as the author</h3>
+          <select class="field" id="authorCommentPost" required><option value="">Choose a post</option></select>
+          <input class="field" id="authorCommentName" value="Churchill Celestine" maxlength="80" required aria-label="Author name">
+          <textarea class="field" id="authorCommentText" maxlength="2000" placeholder="Write a comment" required></textarea>
+          <button class="btn btn-dark" type="submit">Publish author comment</button>
+          <div class="admin-note" id="authorCommentMsg"></div>
+        </form>
         <div id="commentList"></div>
       </div>
     </section>

@@ -252,7 +252,7 @@
   function commentFromRow(r, postTitle) {
     var status = r.spam ? 'spam' : (r.approved ? 'approved' : 'pending');
     return { id: String(r.id), postId: String(r.post_id), name: r.name, email: r.email || '', text: r.body,
-      approved: !!r.approved, spam: !!r.spam, status: status, date: dayOf(r.created_at), postTitle: postTitle || '' };
+      approved: !!r.approved, spam: !!r.spam, isAuthor: !!r.is_author, status: status, date: dayOf(r.created_at), postTitle: postTitle || '' };
   }
   DB.listComments = function (postId) {
     return DB.init().then(function () {
@@ -262,7 +262,7 @@
           .catch(function (e) { fail(e); return []; });
       }
       return store().get().comments.filter(function (c) { return String(c.postId) === String(postId) && c.status === 'approved'; })
-        .map(function (c) { return { id: String(c.id), postId: String(c.postId), name: c.name, email: c.email || '', text: c.text, approved: true, date: c.date }; });
+        .map(function (c) { return { id: String(c.id), postId: String(c.postId), name: c.name, email: c.email || '', text: c.text, approved: true, isAuthor: !!c.isAuthor, date: c.date }; });
     });
   };
   // Admin list: all comments with the post title. filter: 'pending' | 'approved' | 'all'
@@ -283,7 +283,7 @@
       s.posts.forEach(function (p) { posts[String(p.id)] = p.title; });
       return s.comments.filter(function (c) { return filter === 'all' || c.status === filter; })
         .map(function (c) { return { id: String(c.id), postId: String(c.postId), name: c.name, email: c.email || '', text: c.text,
-          approved: c.status === 'approved', date: c.date, postTitle: posts[String(c.postId)] || 'deleted post', status: c.status }; });
+          approved: c.status === 'approved', isAuthor: !!c.isAuthor, date: c.date, postTitle: posts[String(c.postId)] || 'deleted post', status: c.status }; });
     });
   };
   DB.addComment = function (postId, name, text, email) {
@@ -293,6 +293,17 @@
           .then(function (r) { if (r.error) throw r.error; });
       }
       store().addComment({ postId: postId, name: name, email: email || '', text: text });
+    });
+  };
+  DB.addAuthorComment = function (postId, name, text) {
+    return DB.init().then(function () {
+      if (live()) {
+        return withTimeout(client.from('comments').insert({ post_id: postId, name: name, email: null, body: text, approved: true, spam: false, is_author: true }))
+          .then(function (r) { if (r.error) throw r.error; });
+      }
+      store().addComment({ postId: postId, name: name, text: text });
+      var s = store().get(), c = s.comments[s.comments.length - 1];
+      if (c) { c.status = 'approved'; c.isAuthor = true; store().save(s); }
     });
   };
   DB.setCommentApproved = function (id, approved) {

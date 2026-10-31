@@ -37,7 +37,7 @@
     $('#cList').innerHTML = list.length
       ? list.map(function (c) {
           var ini = String(c.name || '?').trim().charAt(0).toUpperCase();
-          return '<div class="comment"><span class="cav cav-sm" aria-hidden="true">' + CN.esc(ini) + '</span><div class="comment-body"><b>' + CN.esc(c.name) + '</b> <span class="muted small">' + CN.fmt(c.date) + '</span><p>' + CN.esc(c.text) + '</p></div></div>';
+          return '<div class="comment"><span class="cav cav-sm" aria-hidden="true">' + CN.esc(ini) + '</span><div class="comment-body"><b>' + CN.esc(c.name) + '</b>' + (c.isAuthor ? ' <span class="badge-author">Author</span>' : '') + ' <span class="muted small">' + CN.fmt(c.date) + '</span><p>' + CN.esc(c.text) + '</p></div></div>';
         }).join('')
       : CN.emptyState('<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>', 'No comments yet.', 'Be the first to add a thought.');
   }

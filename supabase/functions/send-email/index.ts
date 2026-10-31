@@ -94,10 +94,25 @@ Deno.serve(async (req: Request) => {
       if (!email || !replyText || !postUrl || !/^https:\/\//i.test(postUrl)) {
         return jsonResponse({ error: "email, replyText, and a valid https postUrl are required" }, 400);
       }
+      const hasReplier = body.replierName != null || body.replierRole != null;
+      const replierName = plainText(body.replierName);
+      const replierRole = plainText(body.replierRole).toLowerCase();
+      const postTitle = plainText(body.postTitle);
+      const isAuthor = replierRole === "admin" || replierRole === "author";
+      const subject = !hasReplier
+        ? "Someone replied to your comment on Anaxx Science Hub"
+        : isAuthor
+          ? "The author replied to your comment on Anaxx Science Hub"
+          : "New reply on " + (postTitle || "a post") + " - Anaxx Science Hub";
+      const opening = !hasReplier
+        ? "Someone replied to your comment on Anaxx Science Hub:"
+        : isAuthor
+          ? "The admin replied to your comment:"
+          : (replierName || "Someone") + " replied to your comment:";
       const result = await sendResend(
         email,
-        "Someone replied to your comment on Anaxx Science Hub",
-        "Someone replied to your comment on Anaxx Science Hub:\n\n" + replyText + "\n\nRead the post: " + postUrl,
+        subject,
+        opening + "\n\n" + replyText + "\n\nRead the post: " + postUrl,
       );
       return jsonResponse({ ok: true, kind: "reply", result });
     }
