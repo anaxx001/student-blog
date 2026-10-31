@@ -10,6 +10,18 @@
     Object.keys(cats).forEach(function (k) { delete cats[k]; });
     C.categoryRows(settings).forEach(function (x) { cats[x.slug] = x.name || x.slug; });
   };
+  C.renderSocialSettings = function (settings) {
+    var links = [
+      { id: 'whatsappLink', key: 'whatsapp', name: 'WhatsApp' },
+      { id: 'quibblesLink', key: 'quibbles', name: 'Quibbles' }
+    ];
+    links.forEach(function (item) {
+      var el = document.getElementById(item.id), url = settings[item.key] || '';
+      if (!el) return;
+      if (/^https?:\/\//i.test(url)) { el.setAttribute('href', url); el.classList.remove('is-empty'); el.title = item.name; }
+      else { el.removeAttribute('href'); el.classList.add('is-empty'); el.title = item.name + ' link not set yet'; }
+    });
+  };
   C.renderCategoryNav = function (settings) {
     C.applyCategorySettings(settings);
     var rows = C.visibleCategoryRows(settings), menu = document.getElementById('catMenu'), sheet = document.getElementById('shSheet');

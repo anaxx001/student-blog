@@ -161,6 +161,7 @@
   }).then(function (r) {
     var p = r[0], all = CN.publishedOnly(r[1]), settings = r[2];
     $('#navLogo').innerHTML = SB.logoHTML(settings);
+    CN.renderSocialSettings(settings);
     if (!p || p.status !== 'published') { showNotFound(); return; }
 
     document.title = p.title + ' · Anaxx Science Hub';

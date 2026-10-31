@@ -528,7 +528,7 @@
   document.getElementById('pageCategoryForm').addEventListener('submit',function(e){e.preventDefault();var slug=$('#newCatSlug').value.trim().toLowerCase(),name=$('#newCatName').value.trim();if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)||!name||CN.categoryRows(settings).some(function(x){return x.slug===slug;})){setMsg('#pageMsg','Use a unique lowercase slug and name.');return;}var rows=CN.categoryRows(settings).concat([{slug:slug,name:name,visible:true}]);DB.saveSettings({categories:rows}).then(function(){settings.categories=rows;CN.applyCategorySettings(settings);fillCats();renderPageCategories();$('#newCatSlug').value='';$('#newCatName').value='';setMsg('#pageMsg','Added.');}).catch(function(){setMsg('#pageMsg','Could not add category.');});});
   function fillSiteText(){var d={heroTagline:'Notes from a radiography student, for health science students',heroHeadline:'Hard topics, explained in plain language.',heroDescription:'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.',heroButtonOne:'Read the posts',heroButtonTwo:'About this blog'};['heroTagline','heroHeadline','heroDescription','heroButtonOne','heroButtonTwo'].forEach(function(k){document.getElementById(k).value=(settings&&settings[k])||d[k];});}
   document.getElementById('siteTextForm').addEventListener('submit',function(e){e.preventDefault();var patch={heroTagline:$('#heroTagline').value.trim(),heroHeadline:$('#heroHeadline').value.trim(),heroDescription:$('#heroDescription').value.trim(),heroButtonOne:$('#heroButtonOne').value.trim(),heroButtonTwo:$('#heroButtonTwo').value.trim()};DB.saveSettings(patch).then(function(){Object.assign(settings,patch);setMsg('#siteTextMsg','Saved.');}).catch(function(){setMsg('#siteTextMsg','Could not save site text.');});});
-  /* ---------- settings: logo, author photo, tagline, whatsapp ---------- */
+  /* ---------- settings: logo, author photo, tagline, whatsapp, quibbles ---------- */
   function showPreview(key, url) {
     var box = $('#' + key + 'Prev');
     if (!url || !SB.safeImg(url)) { box.hidden = true; return; }
@@ -538,16 +538,17 @@
   function fillSettings() {
     renderPageCategories(); fillSiteText();
     $('#sLogo').value = settings.logo || ''; $('#sAuthor').value = settings.authorImage || '';
-    $('#sWa').value = settings.whatsapp || ''; $('#sTagline').value = settings.tagline || '';
+    $('#sWa').value = settings.whatsapp || ''; $('#sQuibbles').value = settings.quibbles || ''; $('#sTagline').value = settings.tagline || '';
     showPreview('sLogo', settings.logo); showPreview('sAuthor', settings.authorImage);
   }
   $('#settingsForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    var logo = $('#sLogo').value.trim(), author = $('#sAuthor').value.trim(), wa = $('#sWa').value.trim(), tag = $('#sTagline').value.trim();
+    var logo = $('#sLogo').value.trim(), author = $('#sAuthor').value.trim(), wa = $('#sWa').value.trim(), quibbles = $('#sQuibbles').value.trim(), tag = $('#sTagline').value.trim();
     if ((logo && !SB.safeImg(logo)) || (author && !SB.safeImg(author))) return setMsg('#setMsg', 'Images must be http or https links.');
     if (wa && !/^https?:\/\//i.test(wa)) return setMsg('#setMsg', 'WhatsApp link must start with http or https.');
+    if (quibbles && !/^https?:\/\//i.test(quibbles)) return setMsg('#setMsg', 'Quibbles link must start with http or https.');
     setMsg('#setMsg', 'Saving…');
-    var patch = { logo: logo, authorImage: author, whatsapp: wa, tagline: tag };
+    var patch = { logo: logo, authorImage: author, whatsapp: wa, quibbles: quibbles, tagline: tag };
     DB.saveSettings(patch)
       .then(function () { settings = Object.assign(settings, patch); fillSettings(); setMsg('#setMsg', 'Saved.'); })
       .catch(function () { setMsg('#setMsg', 'Could not save settings.'); });

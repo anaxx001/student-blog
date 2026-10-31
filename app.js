@@ -41,9 +41,7 @@
     var src = SB.safeImg(s.authorImage);
     $('#authorRow').innerHTML = src ? '<button type="button" class="avatar-btn" aria-label="View author photo full size"><img class="avatar" src="' + CN.esc(src) + '" alt="Churchill Celestine"></button>' : '';
     $('#authorRow').hidden = !src;
-    var wa = $('#whatsappLink'), url = s.whatsapp || '';
-    if (/^https?:\/\//i.test(url)) { wa.setAttribute('href', url); wa.classList.remove('is-empty'); wa.title = 'WhatsApp'; }
-    else { wa.removeAttribute('href'); wa.classList.add('is-empty'); wa.title = 'WhatsApp link not set yet'; }
+    CN.renderSocialSettings(s);
   }
 
   // One slot: a single enabled ad renders as before; 2+ enabled ads for the placement rotate in the slot.

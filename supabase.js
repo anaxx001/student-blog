@@ -429,7 +429,7 @@
   };
 
   /* ---------- site settings (logo, author photo, whatsapp, tagline, ads toggle) ---------- */
-  function defaultSettings() { return { adsOn: false, whatsapp: '', logo: '', authorImage: '', tagline: '', categories: Object.keys(window.SB.CATS).map(function(slug){return {slug:slug,name:window.SB.CATS[slug],visible:true};}), heroTagline: 'Notes from a radiography student, for health science students', heroHeadline: 'Hard topics, explained in plain language.', heroDescription: 'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.', heroButtonOne: 'Read the posts', heroButtonTwo: 'About this blog' }; }
+  function defaultSettings() { return { adsOn: false, whatsapp: '', quibbles: '', logo: '', authorImage: '', tagline: '', categories: Object.keys(window.SB.CATS).map(function(slug){return {slug:slug,name:window.SB.CATS[slug],visible:true};}), heroTagline: 'Notes from a radiography student, for health science students', heroHeadline: 'Hard topics, explained in plain language.', heroDescription: 'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.', heroButtonOne: 'Read the posts', heroButtonTwo: 'About this blog' }; }
   DB.getSettings = function () {
     return DB.init().then(function () {
       if (live()) {

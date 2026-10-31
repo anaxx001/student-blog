@@ -8,6 +8,7 @@
   }).then(function (r) {
     var settings = r[1];
     CN.renderCategoryNav(settings);
+    CN.renderSocialSettings(settings);
     var rows = CN.visibleCategoryRows(settings);
     $('#catLinks').innerHTML = rows.map(function (x) { return '<a class="fchip' + (x.slug === key ? ' on' : '') + '" href="' + CN.catUrl(x.slug) + '">' + CN.esc(x.name || x.slug) + '</a>'; }).join('');
     var category = rows.filter(function (x) { return x.slug === key; })[0];
