@@ -20,6 +20,16 @@
     }
     var name = category.name || category.slug;
     document.title = name + ' · Anaxx Science Hub';
+    var description = String(category.description || ('Browse ' + name + ' articles from Anaxx Science Hub, a radiography student blog sharing health science notes in plain language.')).replace(/\s+/g, ' ').trim().slice(0, 300);
+    function updateMeta(selector, attr, value) { var el = document.querySelector(selector); if (el) el.setAttribute(attr, value); }
+    var canonical = 'https://anaxx001.github.io/student-blog/category.html';
+    updateMeta('meta[name="description"]', 'content', description);
+    updateMeta('link[rel="canonical"]', 'href', canonical);
+    updateMeta('meta[property="og:title"]', 'content', document.title);
+    updateMeta('meta[property="og:description"]', 'content', description);
+    updateMeta('meta[property="og:url"]', 'content', canonical);
+    updateMeta('meta[name="twitter:title"]', 'content', document.title);
+    updateMeta('meta[name="twitter:description"]', 'content', description);
     $('#catTitle').textContent = name;
     $('#catIntro').textContent = 'Posts filed under ' + name + '.';
     $('#navLogo').innerHTML = SB.logoHTML(settings);

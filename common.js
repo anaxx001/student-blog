@@ -49,7 +49,7 @@
   C.coverHTML = function (p, cls) {
     var src = window.SB.safeImg(p.cover);
     var base = 'cover ' + (cls || '');
-    if (src) return '<div class="' + base + '"><img src="' + C.esc(src) + '" alt=""></div>';
+    if (src) return '<div class="' + base + '"><img src="' + C.esc(src) + '" alt="' + C.esc((p.cover_alt || p.title || 'Article') + (p.cover_alt ? '' : ' cover image')) + '" loading="lazy" decoding="async"></div>';
     return '<div class="' + base + ' cv-' + C.esc(p.category) + '"><span class="cover-label">' + C.esc(C.catName(p.category)) + '</span></div>';
   };
   C.toast = function (msg) {

@@ -62,7 +62,7 @@
   function coverHTML(p, cls) {
     var src = safeImg(p.cover);
     var base = 'cover ' + (cls || '');
-    if (src) return '<div class="' + base + '"><img src="' + esc(src) + '" alt=""></div>';
+    if (src) return '<div class="' + base + '"><img src="' + esc(src) + '" alt="' + esc((p.title || 'Article') + ' cover image') + '"></div>';
     return '<div class="' + base + ' cv-' + esc(p.category) + '"><span class="cover-label">' + esc(CATS[p.category] || p.category) + '</span></div>';
   }
 

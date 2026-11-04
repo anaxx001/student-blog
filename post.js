@@ -166,7 +166,31 @@
 
     document.title = p.title + ' · Anaxx Science Hub';
     var desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', p.excerpt || p.title);
+    var descriptionSource = p.excerpt || String(p.body || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim() || p.title || 'Health science and radiography student article from Anaxx Science Hub.';
+    var description = String(descriptionSource).replace(/\s+/g, ' ').trim().slice(0, 300);
+    if (desc) desc.setAttribute('content', description);
+    function setMeta(selector, attribute, value) {
+      var el = document.querySelector(selector);
+      if (el) el.setAttribute(attribute, value);
+    }
+    var canonicalUrl = location.origin + location.pathname + '?p=' + encodeURIComponent(p.slug || slug);
+    setMeta('link[rel="canonical"]', 'href', canonicalUrl);
+    setMeta('meta[property="og:title"]', 'content', p.title + ' · Anaxx Science Hub');
+    setMeta('meta[property="og:description"]', 'content', description);
+    setMeta('meta[property="og:url"]', 'content', canonicalUrl);
+    setMeta('meta[name="twitter:title"]', 'content', p.title + ' · Anaxx Science Hub');
+    setMeta('meta[name="twitter:description"]', 'content', description);
+    setMeta('meta[name="robots"]', 'content', 'index,follow');
+    var articleSchema = {
+      '@context': 'https://schema.org', '@type': 'BlogPosting',
+      headline: p.title, description: description, url: canonicalUrl,
+      author: p.author ? { '@type': 'Person', name: p.author } : undefined,
+      publisher: { '@type': 'Organization', name: 'Anaxx Science Hub', url: 'https://anaxx001.github.io/student-blog/' }
+    };
+    if (p.date) articleSchema.datePublished = p.date;
+    if (p.cover && /^https?:\/\//i.test(p.cover)) articleSchema.image = p.cover;
+    var schemaEl = document.getElementById('articleSchema');
+    if (schemaEl) schemaEl.textContent = JSON.stringify(articleSchema);
 
     $('#cover').innerHTML = SB.safeImg(p.cover) ? CN.coverHTML(p, 'banner-cover') : '';
     $('#cat').className = 'tag t-' + p.category;
