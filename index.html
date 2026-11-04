@@ -12,12 +12,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="header-v4.css">
 <link rel="stylesheet" href="ads-v6.css?v=3">
+<link rel="stylesheet" href="ambient.css">
 </head>
 <body>
+<div class="ambient-background" aria-hidden="true"><canvas id="ambient-field"></canvas></div>
 
 <header class="site-header" id="siteHeader">
   <div class="sh-inner">
     <a class="wordmark" href="index.html" aria-label="Anaxx Science Hub home"><span id="navLogo"></span><span>Anaxx <span class="wm-accent">Science</span> Hub</span></a>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+      <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"></path></svg>
+      <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5 8.5 8.5 0 1 0 20.5 15.5Z"></path></svg>
+    </button>
     <nav class="sh-links" aria-label="Main">
       <a class="sh-link active" href="index.html" aria-current="page">Home</a>
       <div class="sh-drop" id="catDrop">
@@ -138,5 +144,6 @@
 <script src="common.js"></script>
 <script src="app.js"></script>
 <script src="header-v4.js"></script>
+<script src="ambient.js"></script>
 </body>
 </html>
