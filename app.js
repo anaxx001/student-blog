@@ -38,6 +38,12 @@
     if(document.getElementById('heroDescription')&&s.heroDescription)document.getElementById('heroDescription').textContent=s.heroDescription;
     if(document.getElementById('heroButtonOne'))document.getElementById('heroButtonOne').textContent=s.heroButtonOne||'Read the posts';
     if(document.getElementById('heroButtonTwo'))document.getElementById('heroButtonTwo').textContent=s.heroButtonTwo||'About this blog';
+    var mini=document.getElementById('substackMini');
+    if(mini){
+      var mt=s.substackMiniText||'also on Substack', mu=(s.substackMiniUrl||'').trim();
+      mini.hidden=!mu;
+      if(mu){var a=document.getElementById('substackMiniLink');a.href=mu;a.textContent=mt;}
+    }
     if(document.getElementById('aboutText')&&s.aboutText){
       var paras=String(s.aboutText).split(/\n\s*\n/).filter(function(t){return t.trim();});
       document.getElementById('aboutText').innerHTML=paras.map(function(t){return '<p>'+CN.esc(t.trim())+'</p>';}).join('');
