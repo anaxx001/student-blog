@@ -40,8 +40,9 @@
     if(document.getElementById('heroButtonTwo'))document.getElementById('heroButtonTwo').textContent=s.heroButtonTwo||'About this blog';
     var mini=document.getElementById('substackMini');
     if(mini){
-      var mt=s.substackMiniText||'also on Substack', mu=(s.substackMiniUrl||'').trim();
-      mini.hidden=!mu;
+      var mt=s.substackMiniText||'also on Substack';
+      var mu=typeof s.substackMiniUrl==='string'?s.substackMiniUrl:'https://substack.com/@vonanaxx';
+      mu=mu.trim(); mini.hidden=!mu;
       if(mu){var a=document.getElementById('substackMiniLink');a.href=mu;a.textContent=mt;}
     }
     if(document.getElementById('aboutText')&&s.aboutText){
@@ -51,6 +52,13 @@
     var src = SB.safeImg(s.authorImage);
     $('#authorRow').innerHTML = src ? '<button type="button" class="avatar-btn" aria-label="View author photo full size"><img class="avatar" src="' + CN.esc(src) + '" alt="Churchill Celestine"></button>' : '';
     $('#authorRow').hidden = !src;
+    var sb=document.getElementById('substackBtn');
+    if(sb){
+      var bt=s.substackBtnText||'Subscribe on Substack';
+      var bu=typeof s.substackBtnUrl==='string'?s.substackBtnUrl:'https://substack.com/@vonanaxx';
+      bu=bu.trim(); sb.hidden=!bu;
+      if(bu){sb.href=bu;sb.textContent=bt;}
+    }
     var wa = $('#whatsappLink'), url = s.whatsapp || '';
     if (/^https?:\/\//i.test(url)) { wa.setAttribute('href', url); wa.classList.remove('is-empty'); wa.title = 'WhatsApp'; }
     else { wa.removeAttribute('href'); wa.classList.add('is-empty'); wa.title = 'WhatsApp link not set yet'; }
