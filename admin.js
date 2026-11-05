@@ -367,7 +367,7 @@
     DB.deletePost(id).then(function () { toast('Deleted.'); $('#postForm').hidden = true; return refreshAll(); })
       .catch(function () { setMsg('#postMsg', 'Could not delete.'); });
   });
-  function refreshPosts() { return DB.listPosts({ all: true }).then(function (list) { posts = list; renderPosts(); fillAuthorCommentPosts(); }); }
+  function refreshPosts() { return DB.listPosts({ all: true }).then(function (list) { posts = list; renderPosts(); }); }
 
   /* ---------- comments ---------- */
   var commentRows = [];
@@ -375,7 +375,7 @@
     if (!list.length) { $('#commentList').innerHTML = '<p class="muted">Nothing here.</p>'; return; }
     $('#commentList').innerHTML = list.map(function (c) {
       var status = c.status || (c.approved ? 'approved' : 'pending');
-      return '<div class="row-item"><div><b>' + CN.esc(c.name) + '</b>' + (c.isAuthor ? ' <span class="badge-author">Author</span>' : '') + ' <span class="muted small">on ' + CN.esc(c.postTitle) + ' · ' + CN.fmt(c.date) +
+      return '<div class="row-item"><div><b>' + CN.esc(c.name) + '</b> <span class="muted small">on ' + CN.esc(c.postTitle) + ' · ' + CN.fmt(c.date) +
         ' · ' + status + '</span><p>' + CN.esc(c.text) + '</p></div>' +
         '<div class="row-btns">' +
         (status === 'approved' ? '<button class="btn btn-line" data-reply="' + CN.esc(c.id) + '" type="button">Reply</button>' : '<button class="btn btn-dark" data-approve="' + CN.esc(c.id) + '" type="button">Approve</button>') +
@@ -387,30 +387,13 @@
   function refreshComments() {
     return DB.listAllComments($('#cFilter').value).then(renderComments).catch(function () { renderComments([]); });
   }
-  function fillAuthorCommentPosts() {
-    var select = $('#authorCommentPost'), published = posts.filter(function (p) { return p.status === 'published'; });
-    select.innerHTML = '<option value="">Choose a post</option>' + published.map(function (p) {
-      return '<option value="' + CN.esc(p.id) + '">' + CN.esc(p.title) + '</option>';
-    }).join('');
-  }
-  $('#authorCommentForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var postId = $('#authorCommentPost').value, name = $('#authorCommentName').value.trim(), text = $('#authorCommentText').value.trim();
-    if (!postId || !name || !text) return;
-    setMsg('#authorCommentMsg', 'Publishing…');
-    DB.addAuthorComment(postId, name, text).then(function () {
-      $('#authorCommentText').value = '';
-      setMsg('#authorCommentMsg', 'Author comment published.');
-      return refreshComments().then(refreshDash);
-    }).catch(function (err) { setMsg('#authorCommentMsg', 'Could not publish: ' + ((err && err.message) || 'unknown error')); });
-  });
   $('#cFilter').addEventListener('change', refreshComments);
   $('#commentList').addEventListener('click', function (e) {
     var t = e.target.closest('button'); if (!t) return;
     var p;
     if (t.dataset.approve) p = DB.setCommentApproved(t.dataset.approve, true);
     else if (t.dataset.reply) { var bx=document.querySelector('[data-reply-box=\"'+t.dataset.reply+'\"]'); if(bx) bx.hidden=!bx.hidden; return; }
-    else if (t.dataset.sendReply || t.dataset.mailtoReply) { var replyId = t.dataset.sendReply || t.dataset.mailtoReply, c=commentRows.filter(function(x){return String(x.id)===String(replyId);})[0],replyField=document.querySelector('[data-reply-text=\"'+replyId+'\"]'),txt=replyField?replyField.value.trim():''; if(!c||!txt)return; if(!c.email){toast('No email was left for this comment.');return;} var post=posts.filter(function(x){return String(x.id)===String(c.postId);})[0]; if(!post){toast('Could not find the post link.');return;} var url=new URL(CN.postUrl(post),location.href).href; if(t.dataset.mailtoReply){var sub='your comment on Anaxx Science Hub got a reply',body=txt+'\n\nRead the post: '+url;location.href='mailto:'+c.email+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(body);return;} t.disabled=true; emailFunction({kind:'reply',email:c.email,replyText:txt,postTitle:c.postTitle,postUrl:url,replierName:'Churchill Celestine',replierRole:'admin'}).then(function(){toast('Reply notification sent.');}).catch(function(err){toast('Could not send reply notification: '+((err&&err.message)||'unknown error')+'. Use Prepare email reply as fallback.');}).then(function(){t.disabled=false;}); return; }
+    else if (t.dataset.sendReply || t.dataset.mailtoReply) { var replyId = t.dataset.sendReply || t.dataset.mailtoReply, c=commentRows.filter(function(x){return String(x.id)===String(replyId);})[0],replyField=document.querySelector('[data-reply-text=\"'+replyId+'\"]'),txt=replyField?replyField.value.trim():''; if(!c||!txt)return; if(!c.email){toast('No email was left for this comment.');return;} var post=posts.filter(function(x){return String(x.id)===String(c.postId);})[0]; if(!post){toast('Could not find the post link.');return;} var url=new URL(CN.postUrl(post),location.href).href; if(t.dataset.mailtoReply){var sub='your comment on Anaxx Science Hub got a reply',body=txt+'\n\nRead the post: '+url;location.href='mailto:'+c.email+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(body);return;} t.disabled=true; emailFunction({kind:'reply',email:c.email,replyText:txt,postTitle:c.postTitle,postUrl:url}).then(function(){toast('Reply notification sent.');}).catch(function(err){toast('Could not send reply notification: '+((err&&err.message)||'unknown error')+'. Use Prepare email reply as fallback.');}).then(function(){t.disabled=false;}); return; }
     else if (t.dataset.spam) p = DB.setCommentSpam(t.dataset.spam);
     else if (t.dataset.cdel) { if (!confirm('Delete this comment?')) return; p = DB.deleteComment(t.dataset.cdel); }
     if (p) p.then(function () { return refreshComments().then(refreshDash); }).catch(function () { toast('Could not update that comment.'); });
@@ -526,9 +509,9 @@
   function savePageCategories(){var rows=CN.categoryRows(settings||{}),box=document.getElementById('pageCategoryList');Array.prototype.forEach.call(box.querySelectorAll('[data-page-visible]'),function(e){rows[Number(e.dataset.pageVisible)].visible=e.checked;});Array.prototype.forEach.call(box.querySelectorAll('[data-page-name]'),function(e){rows[Number(e.dataset.pageName)].name=e.value.trim()||rows[Number(e.dataset.pageName)].slug;});DB.saveSettings({categories:rows}).then(function(){settings.categories=rows;CN.applyCategorySettings(settings);fillCats();renderPageCategories();setMsg('#pageMsg','Saved.');}).catch(function(){setMsg('#pageMsg','Could not save category settings.');});}
   document.getElementById('pageCategoryList').addEventListener('change',function(e){if(e.target.matches('[data-page-visible]'))savePageCategories();});document.getElementById('pageCategoryList').addEventListener('blur',function(e){if(e.target.matches('[data-page-name]'))savePageCategories();},true);
   document.getElementById('pageCategoryForm').addEventListener('submit',function(e){e.preventDefault();var slug=$('#newCatSlug').value.trim().toLowerCase(),name=$('#newCatName').value.trim();if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)||!name||CN.categoryRows(settings).some(function(x){return x.slug===slug;})){setMsg('#pageMsg','Use a unique lowercase slug and name.');return;}var rows=CN.categoryRows(settings).concat([{slug:slug,name:name,visible:true}]);DB.saveSettings({categories:rows}).then(function(){settings.categories=rows;CN.applyCategorySettings(settings);fillCats();renderPageCategories();$('#newCatSlug').value='';$('#newCatName').value='';setMsg('#pageMsg','Added.');}).catch(function(){setMsg('#pageMsg','Could not add category.');});});
-  function fillSiteText(){var d={heroTagline:'Notes from a radiography student, for health science students',heroHeadline:'Hard topics, explained in plain language.',heroDescription:'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.',heroButtonOne:'Read the posts',heroButtonTwo:'About this blog'};['heroTagline','heroHeadline','heroDescription','heroButtonOne','heroButtonTwo'].forEach(function(k){document.getElementById(k).value=(settings&&settings[k])||d[k];});}
-  document.getElementById('siteTextForm').addEventListener('submit',function(e){e.preventDefault();var patch={heroTagline:$('#heroTagline').value.trim(),heroHeadline:$('#heroHeadline').value.trim(),heroDescription:$('#heroDescription').value.trim(),heroButtonOne:$('#heroButtonOne').value.trim(),heroButtonTwo:$('#heroButtonTwo').value.trim()};DB.saveSettings(patch).then(function(){Object.assign(settings,patch);setMsg('#siteTextMsg','Saved.');}).catch(function(){setMsg('#siteTextMsg','Could not save site text.');});});
-  /* ---------- settings: logo, author photo, tagline, whatsapp, quibbles ---------- */
+  function fillSiteText(){var d={heroTagline:'Notes from a radiography student, for health science students',heroHeadline:'Hard topics, explained in plain language.',heroDescription:'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.',heroButtonOne:'Read the posts',heroButtonTwo:'About this blog',aboutText:'Nobody told me what radiography would actually feel like before I got in. To be honest, the profession is so niche and radiographers are so rare that I knew nothing about them until I got admitted. Good decision or bad one? Time will tell.\n\nThis blog is just a space where I share my little thoughts on base courses like anatomy, physiology, biochemistry, and my major profession.\n\nI\'m a 200-level radiography student, and this blog is my notebook in public. I\'ll be writing about what I\'m learning, how I study for it, what clinicals are actually like, and the things nobody says out loud about being a health science student in a Nigerian university.\n\nI\'m not an expert. That\'s kind of the point. If you\'re a health science student too, you\'ll probably recognize a lot of this. And if you\'re not, maybe you\'ll see the profession a little differently.\n\nThree posts a week, more or less depending on how the week treats me. Exam weeks excused. Let\'s see how far this goes.'};['heroTagline','heroHeadline','heroDescription','heroButtonOne','heroButtonTwo','aboutText'].forEach(function(k){document.getElementById(k).value=(settings&&settings[k])||d[k];});}
+  document.getElementById('siteTextForm').addEventListener('submit',function(e){e.preventDefault();var patch={heroTagline:$('#heroTagline').value.trim(),heroHeadline:$('#heroHeadline').value.trim(),heroDescription:$('#heroDescription').value.trim(),heroButtonOne:$('#heroButtonOne').value.trim(),heroButtonTwo:$('#heroButtonTwo').value.trim(),aboutText:$('#aboutText').value.trim()};DB.saveSettings(patch).then(function(){Object.assign(settings,patch);setMsg('#siteTextMsg','Saved.');}).catch(function(){setMsg('#siteTextMsg','Could not save site text.');});});
+  /* ---------- settings: logo, author photo, tagline, whatsapp ---------- */
   function showPreview(key, url) {
     var box = $('#' + key + 'Prev');
     if (!url || !SB.safeImg(url)) { box.hidden = true; return; }
@@ -538,17 +521,16 @@
   function fillSettings() {
     renderPageCategories(); fillSiteText();
     $('#sLogo').value = settings.logo || ''; $('#sAuthor').value = settings.authorImage || '';
-    $('#sWa').value = settings.whatsapp || ''; $('#sQuibbles').value = settings.quibbles || ''; $('#sTagline').value = settings.tagline || '';
+    $('#sWa').value = settings.whatsapp || ''; $('#sTagline').value = settings.tagline || '';
     showPreview('sLogo', settings.logo); showPreview('sAuthor', settings.authorImage);
   }
   $('#settingsForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    var logo = $('#sLogo').value.trim(), author = $('#sAuthor').value.trim(), wa = $('#sWa').value.trim(), quibbles = $('#sQuibbles').value.trim(), tag = $('#sTagline').value.trim();
+    var logo = $('#sLogo').value.trim(), author = $('#sAuthor').value.trim(), wa = $('#sWa').value.trim(), tag = $('#sTagline').value.trim();
     if ((logo && !SB.safeImg(logo)) || (author && !SB.safeImg(author))) return setMsg('#setMsg', 'Images must be http or https links.');
     if (wa && !/^https?:\/\//i.test(wa)) return setMsg('#setMsg', 'WhatsApp link must start with http or https.');
-    if (quibbles && !/^https?:\/\//i.test(quibbles)) return setMsg('#setMsg', 'Quibbles link must start with http or https.');
     setMsg('#setMsg', 'Saving…');
-    var patch = { logo: logo, authorImage: author, whatsapp: wa, quibbles: quibbles, tagline: tag };
+    var patch = { logo: logo, authorImage: author, whatsapp: wa, tagline: tag };
     DB.saveSettings(patch)
       .then(function () { settings = Object.assign(settings, patch); fillSettings(); setMsg('#setMsg', 'Saved.'); })
       .catch(function () { setMsg('#setMsg', 'Could not save settings.'); });

@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Admin · Anaxx Science Hub</title>
-<meta name="description" content="Private site administration for Anaxx Science Hub.">
-<meta name="robots" content="noindex,nofollow">
-<link rel="canonical" href="https://anaxx001.github.io/student-blog/admin.html">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="styles-v3.css">
 <link rel="stylesheet" href="admin-v4.css">
@@ -189,20 +186,12 @@
             <option value="all">All</option>
           </select>
         </div>
-        <form class="form" id="authorCommentForm" style="margin:14px 0">
-          <h3>Post a comment as the author</h3>
-          <select class="field" id="authorCommentPost" required><option value="">Choose a post</option></select>
-          <input class="field" id="authorCommentName" value="Churchill Celestine" maxlength="80" required aria-label="Author name">
-          <textarea class="field" id="authorCommentText" maxlength="2000" placeholder="Write a comment" required></textarea>
-          <button class="btn btn-dark" type="submit">Publish author comment</button>
-          <div class="admin-note" id="authorCommentMsg"></div>
-        </form>
         <div id="commentList"></div>
       </div>
     </section>
 
     <section data-pane="pages" hidden><div class="glass pane-card"><h2 class="h2">Pages</h2><p class="muted small">Hidden categories and posts remain intact in admin.</p><div id="pageCategoryList"></div><form class="form" id="pageCategoryForm"><h3>Add category</h3><div class="row2"><input class="field" id="newCatSlug" placeholder="lowercase-slug" pattern="[a-z0-9]+(-[a-z0-9]+)*" required><input class="field" id="newCatName" placeholder="Display name" required></div><button class="btn btn-dark" type="submit">Add category</button><div class="admin-note" id="pageMsg"></div></form></div></section>
-    <section data-pane="sitetext" hidden><form class="glass pane-card form" id="siteTextForm"><h2 class="h2">Site text</h2><label class="lbl">Top tagline<input class="field" id="heroTagline"></label><label class="lbl">Headline<input class="field" id="heroHeadline"></label><label class="lbl">Description<textarea class="field" id="heroDescription"></textarea></label><div class="row2"><label class="lbl">First button<input class="field" id="heroButtonOne"></label><label class="lbl">Second button<input class="field" id="heroButtonTwo"></label></div><button class="btn btn-dark" type="submit">Save site text</button><div class="admin-note" id="siteTextMsg"></div></form></section>
+    <section data-pane="sitetext" hidden><form class="glass pane-card form" id="siteTextForm"><h2 class="h2">Site text</h2><label class="lbl">Top tagline<input class="field" id="heroTagline"></label><label class="lbl">Headline<input class="field" id="heroHeadline"></label><label class="lbl">Description<textarea class="field" id="heroDescription"></textarea></label><label class="lbl">About the blog (blank line between paragraphs)<textarea class="field" id="aboutText" rows="10"></textarea></label><div class="row2"><label class="lbl">First button<input class="field" id="heroButtonOne"></label><label class="lbl">Second button<input class="field" id="heroButtonTwo"></label></div><button class="btn btn-dark" type="submit">Save site text</button><div class="admin-note" id="siteTextMsg"></div></form></section>
     <section data-pane="subs" hidden>
       <div class="glass pane-card">
         <div class="pane-head">
@@ -271,7 +260,6 @@
 
         <label class="lbl">Site tagline (shown in the footer)<input class="field" id="sTagline" maxlength="140" placeholder="notes from a radiography student, for health science students"></label>
         <label class="lbl">WhatsApp channel link<input class="field" id="sWa" placeholder="https://chat.whatsapp.com/..."></label>
-        <label class="lbl">Quibbles (URL)<input class="field" id="sQuibbles" type="url" placeholder="https://..."></label>
         <div class="row-btns"><button class="btn btn-dark" type="submit">Save settings</button></div>
         <div class="admin-note" id="setMsg"></div>
       </form>

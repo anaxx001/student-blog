@@ -38,10 +38,16 @@
     if(document.getElementById('heroDescription')&&s.heroDescription)document.getElementById('heroDescription').textContent=s.heroDescription;
     if(document.getElementById('heroButtonOne'))document.getElementById('heroButtonOne').textContent=s.heroButtonOne||'Read the posts';
     if(document.getElementById('heroButtonTwo'))document.getElementById('heroButtonTwo').textContent=s.heroButtonTwo||'About this blog';
+    if(document.getElementById('aboutText')&&s.aboutText){
+      var paras=String(s.aboutText).split(/\n\s*\n/).filter(function(t){return t.trim();});
+      document.getElementById('aboutText').innerHTML=paras.map(function(t){return '<p>'+CN.esc(t.trim())+'</p>';}).join('');
+    }
     var src = SB.safeImg(s.authorImage);
     $('#authorRow').innerHTML = src ? '<button type="button" class="avatar-btn" aria-label="View author photo full size"><img class="avatar" src="' + CN.esc(src) + '" alt="Churchill Celestine"></button>' : '';
     $('#authorRow').hidden = !src;
-    CN.renderSocialSettings(s);
+    var wa = $('#whatsappLink'), url = s.whatsapp || '';
+    if (/^https?:\/\//i.test(url)) { wa.setAttribute('href', url); wa.classList.remove('is-empty'); wa.title = 'WhatsApp'; }
+    else { wa.removeAttribute('href'); wa.classList.add('is-empty'); wa.title = 'WhatsApp link not set yet'; }
   }
 
   // One slot: a single enabled ad renders as before; 2+ enabled ads for the placement rotate in the slot.
