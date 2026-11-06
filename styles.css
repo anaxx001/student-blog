@@ -133,7 +133,7 @@ footer a{text-decoration:none;font-weight:600;color:var(--ink)}
 .socials{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
 .socials a{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid var(--line);text-decoration:none;font-size:14px;font-weight:600;color:var(--ink)}
 .socials a:hover{background:#fff}
-.socials a.is-empty{opacity:.5;cursor:default}
+.socials a.is-empty{display:none}
 
 /* modal */
 .modal{position:fixed;inset:0;background:rgba(13,43,42,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;z-index:100;overflow:auto;padding:40px 16px}
