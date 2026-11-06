@@ -59,7 +59,7 @@
     clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove('show'); }, 2800);
   };
   C.slug = function (s) { return encodeURIComponent(s); };
-  C.postUrl = function (p) { return 'post.html?p=' + C.slug(p.slug); };
+  C.postUrl = function (p) { return 'post/' + encodeURIComponent(p.slug || window.DB.slugify(p.title || 'post')) + '.html'; };
   C.savedIds=function(){try{return JSON.parse(localStorage.getItem('anaxx_saved_posts')||'[]').map(String);}catch(e){return [];}};
   C.savedPosts=function(list){var ids=C.savedIds();return list.filter(function(p){return ids.indexOf(String(p.id))!==-1;});};
   C.catUrl = function (k) { return 'category.html?c=' + C.slug(k); };

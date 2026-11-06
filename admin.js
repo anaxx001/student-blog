@@ -24,6 +24,22 @@
 
   function toast(m) { CN.toast(m); }
   function setMsg(id, m) { $(id).textContent = m || ''; }
+  function syncStaticPages() {
+    return DB.auth.session().then(function (session) {
+      var cfg = window.SB_EMAIL_CONFIG;
+      if (!cfg || !session || !session.access_token) throw new Error('Admin session expired. Log in again.');
+      return fetch(cfg.url + '/functions/v1/sync-static-pages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: cfg.anonKey, Authorization: 'Bearer ' + session.access_token },
+        body: '{}'
+      });
+    }).then(function (response) {
+      return response.json().catch(function () { return {}; }).then(function (data) {
+        if (!response.ok || !data.ok) throw new Error(data.error || 'Static page service returned an error.');
+        return refreshPosts().then(function () { return data; });
+      });
+    });
+  }
   function friendly(err) {
     var m = String((err && err.message) || '');
     if (/invalid login credentials/i.test(m)) return 'Wrong email or password.';
@@ -61,7 +77,11 @@
     $('#loginBox').hidden = true;
     $('#adminBody').hidden = false;
     $('#logoutBtn').hidden = false;
-    return refreshAll();
+    return refreshAll().then(function () {
+      syncStaticPages().then(function (result) {
+        if (result.changed || result.removed) toast('Static pages synced (' + result.published + ' published).');
+      }).catch(function (err) { toast('Could not sync static pages: ' + ((err && err.message) || 'unknown error')); });
+    });
   }
   function denyLogin(msg) { return DB.auth.signOut().then(function () { showLogin(msg); }); }
 
@@ -353,10 +373,16 @@
       toast(status === 'published' ? 'Published.' : 'Draft saved.');
       $('#postForm').hidden = true;
       return refreshAll().then(function () {
-        if (status !== 'published') return;
+        var staticSync = syncStaticPages().then(function (result) {
+          if (result.slugUpdateFailed) toast('Static pages synced, but the Supabase slug RPC failed. Run setup-v8.sql in Supabase first.');
+          else toast('Static pages synced (' + result.published + ' published).');
+        }).catch(function (err) {
+          toast('Post saved, but static page commit failed: ' + ((err && err.message) || 'unknown error'));
+        });
+        if (status !== 'published') return staticSync;
         var excerpt = payload.excerpt || String(payload.body || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150);
-        return emailFunction({ kind: 'publish', postId: savedPost.id, slug: savedPost.slug, title: savedPost.title, excerpt: excerpt })
-          .then(function (result) { toast('Subscriber email sent to ' + result.sent + ' address' + (result.sent === 1 ? '' : 'es') + '.'); })
+        return Promise.all([staticSync, emailFunction({ kind: 'publish', postId: savedPost.id, slug: savedPost.slug, title: savedPost.title, excerpt: excerpt })])
+          .then(function (result) { var emailResult = result[1]; toast('Subscriber email sent to ' + emailResult.sent + ' address' + (emailResult.sent === 1 ? '' : 'es') + '.'); })
           .catch(function (err) { toast('Post published, but email failed: ' + ((err && err.message) || 'unknown error')); });
       });
     }).catch(function (err) { setMsg('#postMsg', 'Could not save: ' + ((err && err.message) || 'unknown error') + '. Your post is not stored yet.'); })
@@ -365,7 +391,7 @@
   $('#deletePost').addEventListener('click', function () {
     var id = $('#pId').value;
     if (!id || !confirm('Delete this post and its comments? This cannot be undone.')) return;
-    DB.deletePost(id).then(function () { toast('Deleted.'); $('#postForm').hidden = true; return refreshAll(); })
+    DB.deletePost(id).then(function () { toast('Deleted.'); $('#postForm').hidden = true; return refreshAll().then(syncStaticPages).catch(function (err) { toast('Post deleted, but static cleanup failed: ' + ((err && err.message) || 'unknown error')); }); })
       .catch(function () { setMsg('#postMsg', 'Could not delete.'); });
   });
   function refreshPosts() { return DB.listPosts({ all: true }).then(function (list) { posts = list; renderPosts(); }); }

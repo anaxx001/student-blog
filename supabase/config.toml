@@ -1,0 +1,4 @@
+[functions]
+
+[functions."sync-static-pages"]
+verify_jwt = false
