@@ -20,8 +20,12 @@
     el.innerHTML = CN.visibleCategoryRows(settings).map(function (x) { return '<a class="fchip" href="' + CN.catUrl(x.slug) + '">' + CN.esc(x.name) + '</a>'; }).join('');
   }
 
-  function renderGrid(list) {
+  function renderGrid(list, hasFeature) {
     if (!list.length) {
+      if (hasFeature) {
+        $('#postGrid').innerHTML = '';
+        return;
+      }
       $('#postGrid').innerHTML = '<div class="glass empty-state"><span class="eyebrow">Coming soon</span>' +
         '<h3>No posts yet.</h3><p class="muted">Nothing is published yet. Check back soon.</p></div>';
       return;
@@ -141,7 +145,7 @@
     var posts = CN.publishedOnly(r[0]).filter(function(p){return visible.indexOf(p.category)!==-1;});
     renderBrand(settings);
     renderFeature(posts[0] || null);
-    renderGrid(posts.slice(1));
+    renderGrid(posts.slice(1), !!posts.length);
     renderAds(settings, ads);
   }).catch(function (e) {
     console.warn(e);
