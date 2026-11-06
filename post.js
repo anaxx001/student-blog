@@ -70,11 +70,11 @@
 
   function safePostBody(value) {
     var source = String(value == null ? '' : value);
-    if (!/<\/?(p|br|b|strong|i|em|u|h2|h3|ul|ol|li|a|img|span)\b/i.test(source)) {
+    if (!/<\/?(p|br|b|strong|i|em|u|s|strike|h[1-6]|ul|ol|li|a|img|span|hr|blockquote|div|pre|code|sub|sup)\b/i.test(source)) {
       return source.split(/\n\n+/).map(function (part) { return '<p>' + CN.esc(part).replace(/\n/g, '<br>') + '</p>'; }).join('');
     }
     var doc = new DOMParser().parseFromString(source, 'text/html');
-    var allowed = { p: 1, br: 1, b: 1, strong: 1, i: 1, em: 1, u: 1, h2: 1, h3: 1, ul: 1, ol: 1, li: 1, a: 1, img: 1, span: 1 };
+    var allowed = { p: 1, br: 1, b: 1, strong: 1, i: 1, em: 1, u: 1, s: 1, strike: 1, h1: 1, h2: 1, h3: 1, h4: 1, h5: 1, h6: 1, ul: 1, ol: 1, li: 1, a: 1, img: 1, span: 1, hr: 1, blockquote: 1, div: 1, pre: 1, code: 1, sub: 1, sup: 1 };
     function clean(node) {
       var out = document.createDocumentFragment();
       Array.prototype.slice.call(node.childNodes).forEach(function (child) {
@@ -89,7 +89,9 @@
         }
         if (tag === 'span') {
           var fontSize = child.style && child.style.fontSize;
-          if (/^(?:[1-9]|[1-3][0-9]|40)px$/.test(fontSize)) el.style.fontSize = fontSize;
+          var color = child.style && (child.style.color || child.style.fontColor);
+          if (/^(?:[1-9]|[1-3][0-9]|40)px$/.test(fontSize) || /^(?:0?\.[0-9]+|[0-9]+(?:\.[0-9]+)?)(?:em|rem|%)$/.test(fontSize)) el.style.fontSize = fontSize;
+          if (/^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(color) || /^rgba?\([0-9.,%\s]+\)$/i.test(color)) el.style.color = color;
         }
         if (tag === 'img') {
           var src = child.getAttribute('src') || '';

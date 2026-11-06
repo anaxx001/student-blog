@@ -138,16 +138,32 @@
         <label class="lbl">Excerpt (shown on cards)<textarea class="field" id="pExcerpt" rows="2" maxlength="400"></textarea></label>
         <div class="lbl post-body-label">Body
           <div class="editor-toolbar" role="toolbar" aria-label="Post body formatting">
-            <button class="btn btn-line editor-tool" type="button" data-editor-command="bold" aria-label="Bold"><b>B</b></button>
-            <button class="btn btn-line editor-tool" type="button" data-editor-command="italic" aria-label="Italic"><i>I</i></button>
-            <button class="btn btn-line editor-tool" type="button" data-editor-command="underline" aria-label="Underline"><u>U</u></button>
-            <button class="btn btn-line editor-tool" type="button" data-editor-block="h2">H2</button>
-            <button class="btn btn-line editor-tool" type="button" data-editor-block="h3">H3</button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="bold" aria-label="Bold" title="Bold"><b>B</b></button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="italic" aria-label="Italic" title="Italic"><i>I</i></button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="underline" aria-label="Underline" title="Underline"><u>U</u></button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-block="h2" aria-label="Heading 2">H2</button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-block="h3" aria-label="Heading 3">H3</button>
             <label class="editor-size-label">Text size
-              <select class="field editor-size" id="editorSize" aria-label="Text size in pixels"><option value="">Size (px)</option><option value="1">1 px</option><option value="2">2 px</option><option value="3">3 px</option><option value="4">4 px</option><option value="5">5 px</option><option value="6">6 px</option><option value="7">7 px</option><option value="8">8 px</option><option value="9">9 px</option><option value="10">10 px</option><option value="11">11 px</option><option value="12">12 px</option><option value="13">13 px</option><option value="14">14 px</option><option value="15">15 px</option><option value="16">16 px</option><option value="17">17 px</option><option value="18">18 px</option><option value="19">19 px</option><option value="20">20 px</option><option value="21">21 px</option><option value="22">22 px</option><option value="23">23 px</option><option value="24">24 px</option><option value="25">25 px</option><option value="26">26 px</option><option value="27">27 px</option><option value="28">28 px</option><option value="29">29 px</option><option value="30">30 px</option><option value="31">31 px</option><option value="32">32 px</option><option value="33">33 px</option><option value="34">34 px</option><option value="35">35 px</option><option value="36">36 px</option><option value="37">37 px</option><option value="38">38 px</option><option value="39">39 px</option><option value="40">40 px</option></select>
+              <select class="field editor-size" id="editorSize" aria-label="Text size"><option value="">Size</option><option value="large">Large</option><option value="medium">Medium</option><option value="small">Small</option></select>
             </label>
-            <button class="btn btn-line editor-tool" type="button" data-editor-command="insertUnorderedList">Bullets</button>
-            <button class="btn btn-line editor-tool" type="button" data-editor-command="insertOrderedList">Numbered</button>
+            <div class="editor-colors" role="group" aria-label="Text colour">
+              <span class="editor-color-caption">Colour</span>
+              <button class="editor-swatch" type="button" data-editor-color="#172b27" style="background:#172b27" aria-label="Dark text" title="Dark text"></button>
+              <button class="editor-swatch" type="button" data-editor-color="#0f9d8a" style="background:#0f9d8a" aria-label="Teal text" title="Teal"></button>
+              <button class="editor-swatch" type="button" data-editor-color="#2563eb" style="background:#2563eb" aria-label="Blue text" title="Blue"></button>
+              <button class="editor-swatch" type="button" data-editor-color="#b3261e" style="background:#b3261e" aria-label="Red text" title="Red"></button>
+              <button class="editor-swatch" type="button" data-editor-color="#7c3aed" style="background:#7c3aed" aria-label="Purple text" title="Purple"></button>
+              <label class="editor-custom-color">Custom<input id="editorColor" type="color" value="#172b27" aria-label="Choose custom text colour"></label>
+            </div>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="justifyLeft" aria-label="Align left">Left</button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="justifyCenter" aria-label="Align center">Center</button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="justifyRight" aria-label="Align right">Right</button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="insertUnorderedList" aria-label="Bulleted list">Bullets</button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="insertOrderedList" aria-label="Numbered list">Numbered</button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="insertHorizontalRule" aria-label="Insert horizontal line">Rule</button>
+            <button class="btn btn-line editor-tool" type="button" data-editor-command="removeFormat" aria-label="Clear formatting">Clear format</button>
+            <button class="btn btn-line editor-tool" id="editorUndo" type="button" aria-label="Undo" title="Undo">Undo</button>
+            <button class="btn btn-line editor-tool" id="editorRedo" type="button" aria-label="Redo" title="Redo">Redo</button>
             <button class="btn btn-line editor-tool" id="insertLinkBtn" type="button">Insert link</button>
             <button class="btn btn-line editor-tool" id="insertImageBtn" type="button">Insert image</button>
           </div>

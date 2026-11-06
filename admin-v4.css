@@ -55,6 +55,13 @@
 .editor-size { width: auto; min-width: 112px; padding: 7px 10px; }
 .post-editor { display: block; width: 100%; box-sizing: border-box; min-height: 560px; height: 65vh; max-height: none; overflow: auto; white-space: normal; line-height: 1.7; font-weight: 400; resize: vertical; }
 .post-editor b, .post-editor strong { font-weight: 700 !important; }
+.editor-colors { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.editor-color-caption { font-size: 13px; color: #4f6b66; }
+.editor-swatch { width: 25px; height: 25px; border: 2px solid #d8e3e0; border-radius: 50%; cursor: pointer; }
+.editor-swatch:hover, .editor-swatch:focus { outline: 2px solid var(--accent, #0f9d8a); outline-offset: 1px; }
+.editor-custom-color { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; }
+.editor-custom-color input { width: 34px; height: 30px; padding: 2px; border: 1px solid #cfdcd8; border-radius: 8px; background: #fff; cursor: pointer; }
+.editor-toolbar button:disabled { opacity: .48; cursor: not-allowed; }
 .editor-tool.is-active { background: var(--accent-ink, #0b6f63); color: #fff; border-color: var(--accent-ink, #0b6f63); box-shadow: 0 0 0 2px rgba(11,111,99,.18); }
 .post-editor:empty:before { content: 'Write your post here…'; color: #829792; pointer-events: none; }
 .post-editor img { max-width: 100%; height: auto; }
