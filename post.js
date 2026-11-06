@@ -72,6 +72,35 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
   }
 
+  function linkChipHTML(url) {
+    var u = String(url || '');
+    if (/(?:youtube\.com\/watch\?v=|youtu\.be\/)/i.test(u)) return '<a class="link-chip" href="' + u + '" target="_blank" rel="noopener"><span class="chip-ico">&#9654;</span> Watch on YouTube</a>';
+    if (/^https?:\/\/(?:www\.)?(?:twitter\.com|x)\.com\//i.test(u)) return '<a class="link-chip" href="' + u + '" target="_blank" rel="noopener"><span class="chip-ico">&#120143;</span> Read on X</a>';
+    var host = '';
+    try { host = new URL(u).hostname.replace(/^www\./, ''); } catch (e) { }
+    var parts = host.split('.');
+    var name = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+    if (!host) return '<a class="link-chip" href="' + u + '" target="_blank" rel="noopener"><span class="chip-ico">&#128279;</span> Open link</a>';
+    return '<a class="link-chip" href="' + u + '" target="_blank" rel="noopener"><span class="chip-ico">&#128279;</span> Read: ' + name.charAt(0).toUpperCase() + name.slice(1) + '</a>';
+  }
+  function chipifyBareLinks(rootEl) {
+    if (!rootEl) return;
+    var walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, null, false);
+    var nodes = [], n;
+    while ((n = walker.nextNode())) nodes.push(n);
+    nodes.forEach(function (node) {
+      if (!/https?:\/\//.test(node.nodeValue)) return;
+      var span = document.createElement('span');
+      var re = /(https?:\/\/[^\s<]+)/g, last = 0, m;
+      while ((m = re.exec(node.nodeValue))) {
+        span.appendChild(document.createTextNode(node.nodeValue.slice(last, m.index)));
+        span.appendChild(document.createElement('span')).innerHTML = linkChipHTML(m[1]);
+        last = m.index + m[1].length;
+      }
+      span.appendChild(document.createTextNode(node.nodeValue.slice(last)));
+      node.parentNode.replaceChild(span, node);
+    });
+  }
   function safePostBody(value) {
     var source = String(value == null ? '' : value);
     if (!/<\/?(p|br|b|strong|i|em|u|s|strike|h[1-6]|ul|ol|li|a|img|span|hr|blockquote|div|pre|code|sub|sup)\b/i.test(source)) {
@@ -206,6 +235,7 @@
       '<span class="byline-dot" aria-hidden="true">·</span><time>' + CN.esc(CN.fmt(p.date)) + '</time>' +
       '<span class="byline-dot" aria-hidden="true">·</span><span>' + CN.readMins(p) + ' min read</span>';
     $('#body').innerHTML = safePostBody(p.body);
+    chipifyBareLinks(document.getElementById('body'));
     // 'inside post' ads render between the article and the action bar; 2+ stack into a rotator
     var inlineAds = CN.adsForSlot(r[3] || [], settings, 'inline');
     var adBox = $('#adInline');
@@ -232,6 +262,10 @@
     DB.listComments(p.id).then(renderComments);
     setProgress();
     CN.bindAdClicks();
+    if (location.hash) {
+      var target = document.querySelector(location.hash);
+      if (target) setTimeout(function () { target.scrollIntoView({ behavior: 'smooth' }); }, 60);
+    }
   }).catch(function (e) {
     console.warn(e);
     showNotFound();
