@@ -31,7 +31,7 @@
       if (!btn || !count) return;
       btn.setAttribute('aria-pressed', counts.mine[t] ? 'true' : 'false');
       btn.classList.toggle('on', !!counts.mine[t]);
-      count.textContent = counts[t];
+      count.textContent = counts[t] == null ? '0' : counts[t];
     });
   }
 
