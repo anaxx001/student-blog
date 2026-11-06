@@ -23,14 +23,25 @@ function b64(s: string) { var bytes = new TextEncoder().encode(s); var binary = 
 function fromB64(s: string) { try { return new TextDecoder().decode(Uint8Array.from(atob(String(s).replace(/\s/g, "")), function (c) { return c.charCodeAt(0); })); } catch (_) { return ""; } }
 var SB_API = "https://adcaogagdljbbxdsihip.supabase.co/rest/v1";
 var SB_PUB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkY2FvZ2FnZGxqYmJ4ZHNpaGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MzgxMjgsImV4cCI6MjEwNzUxNDEyOH0.vo5wQBqj-fDhqh9GE94F40_QyWHoOC-I4pM5NMbeuuI";
-function ytChip(url: string) { return '<a class="yt-chip" href="' + esc(url) + '" target="_blank" rel="noopener"><span class="yt-play">&#9654;</span> Watch on YouTube</a>'; }
+function linkChip(url: string) {
+  var u = String(url || "");
+  var yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+  if (yt) return '<a class="link-chip" href="' + esc(u) + '" target="_blank" rel="noopener"><span class="chip-ico">&#9654;</span> Watch on YouTube</a>';
+  if (/^https?:\/\/(?:www\.)?(?:twitter\.com|x)\.com\//i.test(u)) return '<a class="link-chip" href="' + esc(u) + '" target="_blank" rel="noopener"><span class="chip-ico">&#120143;</span> Read on X</a>';
+  var host = "";
+  try { host = new URL(u).hostname.replace(/^www\./, ""); } catch (_) { }
+  if (!host) return '<a class="link-chip" href="' + esc(u) + '" target="_blank" rel="noopener"><span class="chip-ico">&#128279;</span> Open link</a>';
+  var parts = host.split(".");
+  var name = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+  return '<a class="link-chip" href="' + esc(u) + '" target="_blank" rel="noopener"><span class="chip-ico">&#128279;</span> Read: ' + esc(name.charAt(0).toUpperCase() + name.slice(1)) + '</a>';
+}
 function makePage(p: any, pathSlug: string) {
   var title = String(p.title || "Untitled"), desc = textOnly(p.body).slice(0, 160), canonical = SITE + "/post/" + pathSlug + ".html";
   var cover = /^https?:\/\//i.test(String(p.cover_url || "")) ? String(p.cover_url) : "";
   var date = String(p.published_at || p.created_at || "").slice(0, 10), bodyHtml = sanitizeBody(p.body), category = String(p.category || "").replace(/-/g, " "), author = String(p.author || "Anaxx Science Hub"), readMins = Math.max(1, Math.ceil(textOnly(p.body).split(/\s+/).filter(Boolean).length / 230));
   bodyHtml = bodyHtml
-    .replace(/<a\s+[^>]*href="(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=[\w-]+|youtu\.be\/[\w-]+)[^"]*)"[^>]*>[\s\S]*?<\/a>/gi, function (_m: string, url: string) { return ytChip(url); })
-    .replace(/(^|[\s>])(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=[\w-]+|youtu\.be\/[\w-]+)[^\s<]*)/g, function (_m: string, pre: string, url: string) { return pre + ytChip(url); });
+    .replace(/<a\s+[^>]*href="(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=[\w-]+|youtu\.be\/[\w-]+)[^"]*)"[^>]*>[\s\S]*?<\/a>/gi, function (_m: string, url: string) { return linkChip(url); })
+    .replace(/(^|[\s>])(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=[\w-]+|youtu\.be\/[\w-]+)[^\s<]*)/g, function (_m: string, pre: string, url: string) { return pre + linkChip(url); });
   var jsonLd = JSON.stringify({ "@context": "https://schema.org", "@type": "BlogPosting", headline: title, description: desc, image: cover || undefined, datePublished: p.published_at || p.created_at || undefined, dateModified: p.updated_at || p.published_at || undefined, author: { "@type": "Person", name: p.author || "Anaxx Science Hub" }, mainEntityOfPage: canonical, publisher: { "@type": "Organization", name: "Anaxx Science Hub", url: SITE + "/" } }).replace(/</g, "\\u003c");
   var head = "<!doctype html>\n<html lang=\"en\"><head>\n<meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>" + esc(title) + " · Anaxx Science Hub</title>\n<meta name=\"description\" content=\"" + esc(desc) + "\">\n<link rel=\"canonical\" href=\"" + canonical + "\">\n<meta property=\"og:type\" content=\"article\"><meta property=\"og:site_name\" content=\"Anaxx Science Hub\"><meta property=\"og:title\" content=\"" + esc(title) + " · Anaxx Science Hub\"><meta property=\"og:description\" content=\"" + esc(desc) + "\"><meta property=\"og:url\" content=\"" + canonical + "\">" + (cover ? "<meta property=\"og:image\" content=\"" + esc(cover) + "\"><meta property=\"og:image:width\" content=\"1200\"><meta property=\"og:image:height\" content=\"630\"><meta property=\"og:image:alt\" content=\"" + esc(title) + "\">" : "") + "\n<meta name=\"twitter:card\" content=\"" + (cover ? "summary_large_image" : "summary") + "\"><meta name=\"twitter:title\" content=\"" + esc(title) + " · Anaxx Science Hub\"><meta name=\"twitter:description\" content=\"" + esc(desc) + "\">" + (cover ? "<meta name=\"twitter:image\" content=\"" + esc(cover) + "\">" : "") + "\n<script type=\"application/ld+json\">" + jsonLd + "</script>\n" +
     "<link rel=\"stylesheet\" href=\"../styles.css?v=6\"><link rel=\"stylesheet\" href=\"../styles-v3.css\"><link rel=\"stylesheet\" href=\"../ux-v7.css?v=3\"><link rel=\"stylesheet\" href=\"../ads-v6.css?v=3\">\n" +

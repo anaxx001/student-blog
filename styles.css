@@ -334,8 +334,8 @@ body::after{display:none}
 .nodata .spinner{margin:8px auto 0;display:block}
 
 /* youtube chip + static page comments */
-.yt-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;margin:4px 6px 4px 0;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.7);color:var(--accent-ink);font-weight:600;font-size:14px;text-decoration:none}
-.yt-chip .yt-play{font-size:11px}
+.link-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;margin:4px 6px 4px 0;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.7);color:var(--accent-ink);font-weight:600;font-size:14px;text-decoration:none}
+.link-chip .chip-ico{font-size:11px}
 .sp-comments{max-width:720px;margin:24px auto 0;padding:0 20px}
 .sp-comments h3{margin:0 0 10px}
 .sp-comment{padding:10px 0;border-bottom:1px solid var(--line)}
