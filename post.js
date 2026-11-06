@@ -25,12 +25,14 @@
   }
 
   function renderReactions(counts) {
+    if (!counts) return;
     ['like', 'dislike', 'save'].forEach(function (t) {
       var btn = document.querySelector('[data-react="' + t + '"]');
       var count = document.querySelector('[data-count="' + t + '"]');
       if (!btn || !count) return;
-      btn.setAttribute('aria-pressed', counts.mine[t] ? 'true' : 'false');
-      btn.classList.toggle('on', !!counts.mine[t]);
+      var mine = counts.mine || {};
+      btn.setAttribute('aria-pressed', mine[t] ? 'true' : 'false');
+      btn.classList.toggle('on', !!mine[t]);
       count.textContent = counts[t] == null ? '0' : counts[t];
     });
   }
