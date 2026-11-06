@@ -332,15 +332,15 @@
   };
 
   /* ---------- reactions (one per visitor per type) ---------- */
-  var TYPES = ['like', 'insight', 'save'];
+  var TYPES = ['like', 'insight', 'dislike', 'save'];
   function localReactions() {
     try { return JSON.parse(localStorage.getItem(LOCAL_REACT_KEY) || '{}'); } catch (e) { return {}; }
   }
-  // returns { like: n, insight: n, save: n, mine: { like: bool, ... } }
+  // returns counts and per-visitor state for each supported reaction type.
   DB.getReactions = function (postId) {
     var vid = visitorId();
     return DB.init().then(function () {
-      var out = { like: 0, insight: 0, save: 0, mine: { like: false, insight: false, save: false } };
+      var out = { like: 0, insight: 0, dislike: 0, save: 0, mine: { like: false, insight: false, dislike: false, save: false } };
       if (live()) {
         return withTimeout(client.from('reactions').select('emoji_type,visitor_id').eq('post_id', postId))
           .then(function (r) {

@@ -25,11 +25,13 @@
   }
 
   function renderReactions(counts) {
-    ['like', 'insight', 'save'].forEach(function (t) {
+    ['like', 'dislike', 'save'].forEach(function (t) {
       var btn = document.querySelector('[data-react="' + t + '"]');
+      var count = document.querySelector('[data-count="' + t + '"]');
+      if (!btn || !count) return;
       btn.setAttribute('aria-pressed', counts.mine[t] ? 'true' : 'false');
       btn.classList.toggle('on', !!counts.mine[t]);
-      document.querySelector('[data-count="' + t + '"]').textContent = counts[t];
+      count.textContent = counts[t];
     });
   }
 
