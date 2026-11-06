@@ -53,7 +53,7 @@
 
 /* ---- type + spacing scale (index, category, post) ---- */
 .article-wrap .article-title { font-size: clamp(30px, 4.6vw, 44px); line-height: 1.12; letter-spacing: -0.02em; margin: 10px 0 0; }
-.article-body p { font-size: 18px; line-height: 1.75; margin: 0 0 1.25em; color: #1f3a37; }
+.article-body p { font-size: 18px; line-height: 1.85; margin: 0 0 1.6em; color: #1f3a37; }
 .comments-box, .related { margin-top: 48px; }
 .cat-page section { padding-top: 40px; }
 .cat-page .head { margin-bottom: 24px; }

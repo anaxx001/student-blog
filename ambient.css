@@ -138,3 +138,9 @@ body { position: relative; isolation: isolate; background: transparent !importan
   :root:not([data-theme="light"]) .ad { color: #e0eee9; background: linear-gradient(120deg,#1e2d28,#243a34); border-color: #486158; }
   :root:not([data-theme="light"]) .cover-label { color: rgba(255,255,255,.78); }
 }
+
+/* byline author name: off-white in dark mode so it is readable */
+:root[data-theme="dark"] .byline-name { color: #e8f3ef; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .byline-name { color: #e8f3ef; }
+}
