@@ -144,3 +144,16 @@ body { position: relative; isolation: isolate; background: transparent !importan
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .byline-name { color: #e8f3ef; }
 }
+
+/* dark mode: youtube chip + static comments */
+:root[data-theme="dark"] .yt-chip,
+:root[data-theme="dark"] .sp-comments,
+:root[data-theme="dark"] .sp-comment { color: #e0eee9; }
+:root[data-theme="dark"] .yt-chip { background: rgba(29,44,39,.86); border-color: #486158; color: #6ed2c4; }
+:root[data-theme="dark"] .sp-comment .sc-date { color: #9bb3ae; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sp-comments,
+  :root:not([data-theme="light"]) .sp-comment { color: #e0eee9; }
+  :root:not([data-theme="light"]) .yt-chip { background: rgba(29,44,39,.86); border-color: #486158; color: #6ed2c4; }
+  :root:not([data-theme="light"]) .sp-comment .sc-date { color: #9bb3ae; }
+}
