@@ -47,18 +47,7 @@ function INTERACTIVE_JS(pid: string) { return "(function(){var API='" + SB_API +
     "if(C&&!document.getElementById('spCForm')){var f=document.createElement('form');f.id='spCForm';f.setAttribute('class','cform');" +
     "f.innerHTML='<div class=\"cform-row\"><div class=\"cform-main\"><input class=\"field cform-name\" id=\"spCName\" placeholder=\"Your name\" aria-label=\"Your name\" maxlength=\"80\" required><input class=\"field\" id=\"spCEmail\" name=\"email\" type=\"email\" autocomplete=\"email\" placeholder=\"Email for a reply notification (optional)\" aria-label=\"Email for a reply notification, optional\" maxlength=\"254\"><div class=\"cinput\"><input class=\"field\" id=\"spCText\" placeholder=\"Add a comment\" aria-label=\"Comment\" maxlength=\"2000\" required><button class=\"csend\" type=\"submit\" aria-label=\"Send comment\" title=\"Send comment\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M22 2L11 13M22 2l-7 20-4-9-9-4z\"/></svg></button></div></div></div><div class=\"admin-note\" id=\"spCMsg\"></div>';" +
     "C.parentNode.insertBefore(f, C.nextSibling);" +
-    "f.addEventListener('submit',function(e){e.preventDefault();var n=document.getElementById('spCName'),t=document.getElementById('spCText'),m=document.getElementById('spCMsg');if(!n.value.trim()||!t.value.trim())return;m.textContent='Sending...';var em=document.getElementById('spCEmail');fetch(API+'/comments',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({post_id:PID,name:n.value.trim(),email:em&&em.value.trim()?em.value.trim():null,body:t.value.trim(),approved:false})}).then(function(r){if(!r.ok)throw 0;t.value='';m.textContent='Comment sent. It shows once approved.'}).catch(function(){m.textContent='Could not send. Try again.'})})}" +
-    "var sb=document.getElementById('shareBtn');" +
-    "if(sb){var menu=document.getElementById('shareMenu');" +
-    "var url=\" + canonical + \",ttl=\" + esc(title) + \";" +
-    "var wx=document.getElementById('shareX'),wa=document.getElementById('shareWa');" +
-    "if(wx)wx.href='https://twitter.com/intent/tweet?text='+encodeURIComponent(ttl)+'&url='+encodeURIComponent(url);" +
-    "if(wa)wa.href='https://wa.me/?text='+encodeURIComponent(ttl+' '+url);" +
-    "var cp=document.getElementById('shareCopy');" +
-    "if(cp)cp.addEventListener('click',function(){if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(url);else prompt('Copy this link:',url)});" +
-    "sb.addEventListener('click',function(){if(navigator.share){navigator.share({title:ttl,url:url}).catch(function(){});return}menu.hidden=!menu.hidden;sb.setAttribute('aria-expanded',String(!menu.hidden))});" +
-    "document.addEventListener('click',function(e){if(!e.target.closest('.share-wrap')){menu.hidden=true;sb.setAttribute('aria-expanded','false')}});" +
-    "document.addEventListener('keydown',function(e){if(e.key==='Escape'){menu.hidden=true;sb.setAttribute('aria-expanded','false')}})}})();"; }
+    "f.addEventListener('submit',function(e){e.preventDefault();var n=document.getElementById('spCName'),t=document.getElementById('spCText'),m=document.getElementById('spCMsg');if(!n.value.trim()||!t.value.trim())return;m.textContent='Sending...';var em=document.getElementById('spCEmail');fetch(API+'/comments',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({post_id:PID,name:n.value.trim(),email:em&&em.value.trim()?em.value.trim():null,body:t.value.trim(),approved:false})}).then(function(r){if(!r.ok)throw 0;t.value='';m.textContent='Comment sent. It shows once approved.'}).catch(function(){m.textContent='Could not send. Try again.'})})}})();"; }
 
 
 function makePage(p: any, pathSlug: string) {
