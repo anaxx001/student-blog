@@ -24,22 +24,6 @@
 
   function toast(m) { CN.toast(m); }
   function setMsg(id, m) { $(id).textContent = m || ''; }
-  function syncStaticPages() {
-    return DB.auth.session().then(function (session) {
-      var cfg = window.SB_EMAIL_CONFIG;
-      if (!cfg || !session || !session.access_token) throw new Error('Admin session expired. Log in again.');
-      return fetch(cfg.url + '/functions/v1/sync-static-pages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: cfg.anonKey, Authorization: 'Bearer ' + session.access_token },
-        body: '{}'
-      });
-    }).then(function (response) {
-      return response.json().catch(function () { return {}; }).then(function (data) {
-        if (!response.ok || !data.ok) throw new Error(data.error || 'Static page service returned an error.');
-        return refreshPosts().then(function () { return data; });
-      });
-    });
-  }
   function friendly(err) {
     var m = String((err && err.message) || '');
     if (/invalid login credentials/i.test(m)) return 'Wrong email or password.';
@@ -77,11 +61,7 @@
     $('#loginBox').hidden = true;
     $('#adminBody').hidden = false;
     $('#logoutBtn').hidden = false;
-    return refreshAll().then(function () {
-      syncStaticPages().then(function (result) {
-        if (result.changed || result.removed) toast('Static pages synced (' + result.published + ' published).');
-      }).catch(function (err) { toast('Could not sync static pages: ' + ((err && err.message) || 'unknown error')); });
-    });
+    return refreshAll();
   }
   function denyLogin(msg) { return DB.auth.signOut().then(function () { showLogin(msg); }); }
 
@@ -373,16 +353,10 @@
       toast(status === 'published' ? 'Published.' : 'Draft saved.');
       $('#postForm').hidden = true;
       return refreshAll().then(function () {
-        var staticSync = syncStaticPages().then(function (result) {
-          if (result.slugUpdateFailed) toast('Static pages synced, but the Supabase slug RPC failed. Run setup-v8.sql in Supabase first.');
-          else toast('Static pages synced (' + result.published + ' published).');
-        }).catch(function (err) {
-          toast('Post saved, but static page commit failed: ' + ((err && err.message) || 'unknown error'));
-        });
-        if (status !== 'published') return staticSync;
+        if (status !== 'published') return;
         var excerpt = payload.excerpt || String(payload.body || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150);
-        return Promise.all([staticSync, emailFunction({ kind: 'publish', postId: savedPost.id, slug: savedPost.slug, title: savedPost.title, excerpt: excerpt })])
-          .then(function (result) { var emailResult = result[1]; toast('Subscriber email sent to ' + emailResult.sent + ' address' + (emailResult.sent === 1 ? '' : 'es') + '.'); })
+        return emailFunction({ kind: 'publish', postId: savedPost.id, slug: savedPost.slug, title: savedPost.title, excerpt: excerpt })
+          .then(function (result) { toast('Subscriber email sent to ' + result.sent + ' address' + (result.sent === 1 ? '' : 'es') + '.'); })
           .catch(function (err) { toast('Post published, but email failed: ' + ((err && err.message) || 'unknown error')); });
       });
     }).catch(function (err) { setMsg('#postMsg', 'Could not save: ' + ((err && err.message) || 'unknown error') + '. Your post is not stored yet.'); })
@@ -391,7 +365,7 @@
   $('#deletePost').addEventListener('click', function () {
     var id = $('#pId').value;
     if (!id || !confirm('Delete this post and its comments? This cannot be undone.')) return;
-    DB.deletePost(id).then(function () { toast('Deleted.'); $('#postForm').hidden = true; return refreshAll().then(syncStaticPages).catch(function (err) { toast('Post deleted, but static cleanup failed: ' + ((err && err.message) || 'unknown error')); }); })
+    DB.deletePost(id).then(function () { toast('Deleted.'); $('#postForm').hidden = true; return refreshAll(); })
       .catch(function () { setMsg('#postMsg', 'Could not delete.'); });
   });
   function refreshPosts() { return DB.listPosts({ all: true }).then(function (list) { posts = list; renderPosts(); }); }
@@ -536,8 +510,8 @@
   function savePageCategories(){var rows=CN.categoryRows(settings||{}),box=document.getElementById('pageCategoryList');Array.prototype.forEach.call(box.querySelectorAll('[data-page-visible]'),function(e){rows[Number(e.dataset.pageVisible)].visible=e.checked;});Array.prototype.forEach.call(box.querySelectorAll('[data-page-name]'),function(e){rows[Number(e.dataset.pageName)].name=e.value.trim()||rows[Number(e.dataset.pageName)].slug;});DB.saveSettings({categories:rows}).then(function(){settings.categories=rows;CN.applyCategorySettings(settings);fillCats();renderPageCategories();setMsg('#pageMsg','Saved.');}).catch(function(){setMsg('#pageMsg','Could not save category settings.');});}
   document.getElementById('pageCategoryList').addEventListener('change',function(e){if(e.target.matches('[data-page-visible]'))savePageCategories();});document.getElementById('pageCategoryList').addEventListener('blur',function(e){if(e.target.matches('[data-page-name]'))savePageCategories();},true);
   document.getElementById('pageCategoryForm').addEventListener('submit',function(e){e.preventDefault();var slug=$('#newCatSlug').value.trim().toLowerCase(),name=$('#newCatName').value.trim();if(!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)||!name||CN.categoryRows(settings).some(function(x){return x.slug===slug;})){setMsg('#pageMsg','Use a unique lowercase slug and name.');return;}var rows=CN.categoryRows(settings).concat([{slug:slug,name:name,visible:true}]);DB.saveSettings({categories:rows}).then(function(){settings.categories=rows;CN.applyCategorySettings(settings);fillCats();renderPageCategories();$('#newCatSlug').value='';$('#newCatName').value='';setMsg('#pageMsg','Added.');}).catch(function(){setMsg('#pageMsg','Could not add category.');});});
-  function fillSiteText(){var d={heroTagline:'Notes from a radiography student, for health science students',heroHeadline:'Hard topics, explained in plain language.',heroDescription:'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.',substackBtnText:'Subscribe on Substack',substackBtnUrl:'https://substack.com/@vonanaxx',substackMiniText:'also on Substack',substackMiniUrl:'https://substack.com/@vonanaxx',heroButtonOne:'Read the posts',heroButtonTwo:'About this blog',aboutText:'Nobody told me what radiography would actually feel like before I got in. To be honest, the profession is so niche and radiographers are so rare that I knew nothing about them until I got admitted. Good decision or bad one? Time will tell.\n\nThis blog is just a space where I share my little thoughts on base courses like anatomy, physiology, biochemistry, and my major profession.\n\nI\'m a 200-level radiography student, and this blog is my notebook in public. I\'ll be writing about what I\'m learning, how I study for it, what clinicals are actually like, and the things nobody says out loud about being a health science student in a Nigerian university.\n\nI\'m not an expert. That\'s kind of the point. If you\'re a health science student too, you\'ll probably recognize a lot of this. And if you\'re not, maybe you\'ll see the profession a little differently.\n\nThree posts a week, more or less depending on how the week treats me. Exam weeks excused. Let\'s see how far this goes.'};['heroTagline','heroHeadline','heroDescription','heroButtonOne','heroButtonTwo','substackBtnText','substackBtnUrl','substackMiniText','substackMiniUrl','aboutText'].forEach(function(k){document.getElementById(k).value=(settings&&settings[k])||d[k];});}
-  document.getElementById('siteTextForm').addEventListener('submit',function(e){e.preventDefault();var patch={heroTagline:$('#heroTagline').value.trim(),heroHeadline:$('#heroHeadline').value.trim(),heroDescription:$('#heroDescription').value.trim(),heroButtonOne:$('#heroButtonOne').value.trim(),heroButtonTwo:$('#heroButtonTwo').value.trim(),substackBtnText:$('#substackBtnText').value.trim(),substackBtnUrl:$('#substackBtnUrl').value.trim(),substackMiniText:$('#substackMiniText').value.trim(),substackMiniUrl:$('#substackMiniUrl').value.trim(),aboutText:$('#aboutText').value.trim()};DB.saveSettings(patch).then(function(){Object.assign(settings,patch);setMsg('#siteTextMsg','Saved.');}).catch(function(e){setMsg('#siteTextMsg','Could not save site text: '+((e&&e.message)||'unknown error')+'.');});});
+  function fillSiteText(){var d={heroTagline:'Notes from a radiography student, for health science students',heroHeadline:'Hard topics, explained in plain language.',heroDescription:'An educational and research blog breaking down anatomy, physiology, biochemistry and radiography in my own words, written by a student who is learning them right now.',substackBtnText:'Subscribe on Substack',substackBtnUrl:'https://substack.com/@vonanaxx',substackMiniText:'also on Substack',substackMiniUrl:'https://substack.com/@vonanaxx',heroButtonOne:'Read the posts',heroButtonTwo:'About this blog',aboutText:'Nobody told me what radiography would actually feel like before I got in. To be honest, the profession is so niche and radiographers are so rare that I knew nothing about them until I got admitted. Good decision or bad one? Time will tell.\n\nThis blog is just a space where I share my little thoughts on base courses like anatomy, physiology, biochemistry, and my major profession.\n\nI\'m a 200-level radiography student, and this blog is my notebook in public. I\'ll be writing about what I\'m learning, how I study for it, what clinicals are actually like, and the things nobody says out loud about being a health science student in a Nigerian university.\n\nI\'m not an expert. That\'s kind of the point. If you\'re a health science student too, you\'ll probably recognize a lot of this. And if you\'re not, maybe you\'ll see the profession a little differently.\n\nThree posts a week, more or less depending on how the week treats me. Exam weeks excused. Let\'s see how far this goes.'};['heroTagline','heroHeadline','heroDescription','heroButtonOne','heroButtonTwo','substackBtnText','substackBtnUrl','substackMiniText','substackMiniUrl','aboutText'].forEach(function(k){document.getElementById(k).value=(settings&&settings[k])||d[k];});document.getElementById('showAbout').checked=(settings&&settings.showAbout)==='off'?false:true;}
+  document.getElementById('siteTextForm').addEventListener('submit',function(e){e.preventDefault();var patch={heroTagline:$('#heroTagline').value.trim(),heroHeadline:$('#heroHeadline').value.trim(),heroDescription:$('#heroDescription').value.trim(),heroButtonOne:$('#heroButtonOne').value.trim(),heroButtonTwo:$('#heroButtonTwo').value.trim(),substackBtnText:$('#substackBtnText').value.trim(),substackBtnUrl:$('#substackBtnUrl').value.trim(),substackMiniText:$('#substackMiniText').value.trim(),substackMiniUrl:$('#substackMiniUrl').value.trim(),aboutText:$('#aboutText').value.trim(),showAbout:document.getElementById('showAbout').checked?'on':'off'};DB.saveSettings(patch).then(function(){Object.assign(settings,patch);setMsg('#siteTextMsg','Saved.');}).catch(function(e){setMsg('#siteTextMsg','Could not save site text: '+((e&&e.message)||'unknown error')+'.');});});
   /* ---------- settings: logo, author photo, tagline, whatsapp ---------- */
   function showPreview(key, url) {
     var box = $('#' + key + 'Prev');
@@ -785,7 +759,9 @@
       try { document.execCommand('createLink', false, url); }
       catch (ignore) { toast('Could not insert the link in this browser.'); return; }
     } else {
-      var link = document.createElement('a'); link.href = url; link.textContent = url;
+      var label = prompt('Link text:');
+      if (!label) return;
+      var link = document.createElement('a'); link.href = url; link.textContent = label;
       if (range) { range.insertNode(link); range.setStartAfter(link); range.collapse(true); sel.removeAllRanges(); sel.addRange(range); }
       else bodyEditor.appendChild(link);
     }
