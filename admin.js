@@ -785,9 +785,7 @@
       try { document.execCommand('createLink', false, url); }
       catch (ignore) { toast('Could not insert the link in this browser.'); return; }
     } else {
-      var label = prompt('Link text:');
-      if (!label) return;
-      var link = document.createElement('a'); link.href = url; link.textContent = label;
+      var link = document.createElement('a'); link.href = url; link.textContent = url;
       if (range) { range.insertNode(link); range.setStartAfter(link); range.collapse(true); sel.removeAllRanges(); sel.addRange(range); }
       else bodyEditor.appendChild(link);
     }
