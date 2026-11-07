@@ -24,7 +24,7 @@ function fromB64(s: string) { try { return new TextDecoder().decode(Uint8Array.f
 var SB_API = "https://adcaogagdljbbxdsihip.supabase.co/rest/v1";
 var SB_PUB = "sb_publishable_FbItOuVOwTa8F4iOGZVKgg_eMkUoATw";
 function linkChip(url: string) {
-  var u = String(url || "");
+  var u = String(url || "").replace(/&amp;/g, "&");
   var yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
   if (yt) return '<a class="link-chip" href="' + esc(u) + '" target="_blank" rel="noopener"><span class="chip-ico">&#9654;</span> Watch on YouTube</a>';
   if (/^https?:\/\/(?:www\.)?(?:twitter\.com|x)\.com\//i.test(u)) return '<a class="link-chip" href="' + esc(u) + '" target="_blank" rel="noopener"><span class="chip-ico">&#120143;</span> Read on X</a>';
@@ -40,7 +40,7 @@ function makePage(p: any, pathSlug: string) {
   var cover = /^https?:\/\//i.test(String(p.cover_url || "")) ? String(p.cover_url) : "";
   var date = String(p.published_at || p.created_at || "").slice(0, 10), bodyHtml = sanitizeBody(p.body), category = String(p.category || "").replace(/-/g, " "), author = String(p.author || "Anaxx Science Hub"), readMins = Math.max(1, Math.ceil(textOnly(p.body).split(/\s+/).filter(Boolean).length / 230));
   bodyHtml = bodyHtml
-    .replace(/<a\s+[^>]*href="(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=[\w-]+|youtu\.be\/[\w-]+)[^"]*)"[^>]*>[\s\S]*?<\/a>/gi, function (_m: string, url: string) { return linkChip(url); })
+    .replace(/<a\s+[^>]*href=\"(https?:\/\/[^\"]*)\"[^>]*>[\s\S]*?<\/a>/gi, function (_m, url) { return linkChip(url); })
     .replace(/(^|[\s>])(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=[\w-]+|youtu\.be\/[\w-]+)[^\s<]*)/g, function (_m: string, pre: string, url: string) { return pre + linkChip(url); })
     .replace(/(^|[\s>])(https?:\/\/[^\s<]+)/g, function (_m: string, pre: string, url: string) { if (/<a\s/i.test(pre) || pre === '=') return _m; return pre + linkChip(url); });
   var jsonLd = JSON.stringify({ "@context": "https://schema.org", "@type": "BlogPosting", headline: title, description: desc, image: cover || undefined, datePublished: p.published_at || p.created_at || undefined, dateModified: p.updated_at || p.published_at || undefined, author: { "@type": "Person", name: p.author || "Anaxx Science Hub" }, mainEntityOfPage: canonical, publisher: { "@type": "Organization", name: "Anaxx Science Hub", url: SITE + "/" } }).replace(/</g, "\\u003c");
