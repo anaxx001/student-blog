@@ -20,12 +20,8 @@
     el.innerHTML = CN.visibleCategoryRows(settings).map(function (x) { return '<a class="fchip" href="' + CN.catUrl(x.slug) + '">' + CN.esc(x.name) + '</a>'; }).join('');
   }
 
-  function renderGrid(list, hasFeature) {
+  function renderGrid(list) {
     if (!list.length) {
-      if (hasFeature) {
-        $('#postGrid').innerHTML = '';
-        return;
-      }
       $('#postGrid').innerHTML = '<div class="glass empty-state"><span class="eyebrow">Coming soon</span>' +
         '<h3>No posts yet.</h3><p class="muted">Nothing is published yet. Check back soon.</p></div>';
       return;
@@ -49,6 +45,15 @@
       mu=mu.trim(); mini.hidden=!mu;
       if(mu){var a=document.getElementById('substackMiniLink');a.href=mu;a.textContent=mt;}
     }
+    var showAbout = s.showAbout!=='off';
+    var ab=document.getElementById('about');
+    if(ab)ab.style.display=showAbout?'':'none';
+    var hb=document.getElementById('heroButtonTwo');
+    if(hb)hb.style.display=showAbout?'':'none';
+    var nl=document.querySelector('a.sh-link[data-about]');
+    if(nl)nl.style.display=showAbout?'':'none';
+    var fl=document.querySelector('footer a[href="index.html#about"]');
+    if(fl)fl.style.display=showAbout?'':'none';
     if(document.getElementById('aboutText')&&s.aboutText){
       var paras=String(s.aboutText).split(/\n\s*\n/).filter(function(t){return t.trim();});
       document.getElementById('aboutText').innerHTML=paras.map(function(t){return '<p>'+CN.esc(t.trim())+'</p>';}).join('');
@@ -145,7 +150,7 @@
     var posts = CN.publishedOnly(r[0]).filter(function(p){return visible.indexOf(p.category)!==-1;});
     renderBrand(settings);
     renderFeature(posts[0] || null);
-    renderGrid(posts.slice(1), !!posts.length);
+    renderGrid(posts.slice(1));
     renderAds(settings, ads);
   }).catch(function (e) {
     console.warn(e);
