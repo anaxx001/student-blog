@@ -4,7 +4,7 @@
    DB.mode is 'supabase' or 'local'; DB.reason says why (ok | setup | offline). */
 (function () {
   var SB_URL = 'https://adcaogagdljbbxdsihip.supabase.co';
-  var SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkY2FvZ2FnZGxqYmJ4ZHNpaGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MzgxMjgsImV4cCI6MjEwNzUxNDEyOH0.vo5wQBqj-fDhqh9GE94F40_QyWHoOC-I4pM5NMbeuuI';
+  var SB_ANON = 'sb_publishable_FbItOuVOwTa8F4iOGZVKgg_eMkUoATw';
   var VID_KEY = 'campusnotes_visitor_v3';
   var LOCAL_REACT_KEY = 'campusnotes_local_reactions_v3';
   var LOCAL_SUBS_KEY = 'campusnotes_local_subs_v3';
@@ -332,15 +332,15 @@
   };
 
   /* ---------- reactions (one per visitor per type) ---------- */
-  var TYPES = ['like', 'insight', 'dislike', 'save'];
+  var TYPES = ['like', 'insight', 'save'];
   function localReactions() {
     try { return JSON.parse(localStorage.getItem(LOCAL_REACT_KEY) || '{}'); } catch (e) { return {}; }
   }
-  // returns counts and per-visitor state for each supported reaction type.
+  // returns { like: n, insight: n, save: n, mine: { like: bool, ... } }
   DB.getReactions = function (postId) {
     var vid = visitorId();
     return DB.init().then(function () {
-      var out = { like: 0, insight: 0, dislike: 0, save: 0, mine: { like: false, insight: false, dislike: false, save: false } };
+      var out = { like: 0, insight: 0, save: 0, mine: { like: false, insight: false, save: false } };
       if (live()) {
         return withTimeout(client.from('reactions').select('emoji_type,visitor_id').eq('post_id', postId))
           .then(function (r) {
