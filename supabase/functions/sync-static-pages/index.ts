@@ -22,7 +22,7 @@ function textOnly(s: string) { return String(s || "").replace(/<script[\s\S]*?<\
 function b64(s: string) { var bytes = new TextEncoder().encode(s); var binary = ""; for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]); return btoa(binary); }
 function fromB64(s: string) { try { return new TextDecoder().decode(Uint8Array.from(atob(String(s).replace(/\s/g, "")), function (c) { return c.charCodeAt(0); })); } catch (_) { return ""; } }
 var SB_API = "https://adcaogagdljbbxdsihip.supabase.co/rest/v1";
-var SB_PUB = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkY2FvZ2FnZGxqYmJ4ZHNpaGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5MzgxMjgsImV4cCI6MjEwNzUxNDEyOH0.vo5wQBqj-fDhqh9GE94F40_QyWHoOC-I4pM5NMbeuuI";
+var SB_PUB = "sb_publishable_FbItOuVOwTa8F4iOGZVKgg_eMkUoATw";
 function linkChip(url: string) {
   var u = String(url || "");
   var yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
