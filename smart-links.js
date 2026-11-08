@@ -51,9 +51,40 @@
       '<span class="sl-sub">' + CN.esc(info.action) + '</span></span>';
     return a;
   }
+  var URL_RE = /https?:\/\/[A-Za-z0-9._~:%#?&\/=@+\-]+[A-Za-z0-9\/_#=&+\-]/g;
+
+  function linkifyText(root) {
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (n) {
+        if (!n.nodeValue || n.nodeValue.indexOf('http') === -1) return NodeFilter.FILTER_REJECT;
+        var p = n.parentNode;
+        if (!p || p.nodeName === 'A' || p.nodeName === 'SCRIPT' || p.nodeName === 'STYLE') return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function (n) {
+      var frag = document.createDocumentFragment();
+      var last = 0, m;
+      URL_RE.lastIndex = 0;
+      while ((m = URL_RE.exec(n.nodeValue)) !== null) {
+        if (m.index > last) frag.appendChild(document.createTextNode(n.nodeValue.slice(last, m.index)));
+        var a = document.createElement('a');
+        a.href = m[0];
+        a.textContent = m[0];
+        frag.appendChild(a);
+        last = m.index + m[0].length;
+      }
+      if (last < n.nodeValue.length) frag.appendChild(document.createTextNode(n.nodeValue.slice(last)));
+      if (n.parentNode) n.parentNode.replaceChild(frag, n);
+    });
+  }
+
   function scan(root) {
     if (!root || root.getAttribute('data-smart-links') === '1') return;
     root.setAttribute('data-smart-links', '1');
+    linkifyText(root);
     var hosts = window.location.hostname;
     var links = root.querySelectorAll ? root.querySelectorAll('a[href]') : [];
     Array.prototype.slice.call(links).forEach(function (a) {
