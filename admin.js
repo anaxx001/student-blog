@@ -767,6 +767,28 @@
     }
     saveEditorRange(); scheduleEditorHistory();
   });
+  $('#insertWidgetBtn').addEventListener('mousedown', function (e) { e.preventDefault(); });
+  $('#insertWidgetBtn').addEventListener('click', function () {
+    restoreEditorRange();
+    var code = prompt('Paste the widget code here (full HTML/JS), or an https link to a widget page.\n\nTip: long pasted code can be slow on mobile, but it works.');
+    if (!code) return;
+    code = code.trim();
+    if (!code) return;
+    var box = document.createElement('div');
+    box.className = 'post-widget';
+    if (/^https?:\/\/\S+$/i.test(code)) {
+      box.setAttribute('data-widget-url', code);
+    } else {
+      try { box.setAttribute('data-widget', btoa(unescape(encodeURIComponent(code)))); }
+      catch (err) { toast('That widget code could not be encoded. Try an https link to the widget page instead.'); return; }
+    }
+    var sel = window.getSelection(), range = savedRange;
+    if (range) { range.deleteContents(); range.insertNode(box); range.setStartAfter(box); range.collapse(true); savedRange = range; }
+    else { bodyEditor.appendChild(box); savedRange = document.createRange(); savedRange.selectNodeContents(bodyEditor); savedRange.collapse(false); }
+    sel.removeAllRanges(); sel.addRange(savedRange);
+    saveEditorRange(); scheduleEditorHistory();
+    toast('Widget added. It will appear when the post is viewed.');
+  });
   $('#insertImageBtn').addEventListener('mousedown', function (e) { e.preventDefault(); });
   $('#insertImageBtn').addEventListener('click', function () {
     saveEditorRange();
