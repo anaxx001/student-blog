@@ -69,6 +69,31 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
   }
 
+
+  function hydrateWidgets(root) {
+    Array.prototype.slice.call(root.querySelectorAll('.post-widget')).forEach(function (box) {
+      var frame = document.createElement('iframe');
+      frame.className = 'post-widget-frame';
+      frame.setAttribute('sandbox', 'allow-scripts');
+      frame.setAttribute('title', 'Interactive widget');
+      var wurl = box.getAttribute('data-widget-url') || '';
+      var wcode = box.getAttribute('data-widget') || '';
+      if (wurl) { frame.src = wurl; }
+      else if (wcode) {
+        var code;
+        try { code = decodeURIComponent(escape(atob(wcode))); } catch (err) { box.remove(); return; }
+        var doc = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}</style></head><body>' + code + '</body></html>';
+        frame.srcdoc = doc;
+      } else { box.remove(); return; }
+      frame.style.width = '100%';
+      frame.style.minHeight = '480px';
+      frame.style.border = '1px solid var(--line, #2a2f3d)';
+      frame.style.borderRadius = '16px';
+      frame.style.background = 'transparent';
+      box.replaceWith(frame);
+    });
+  }
+
   function safePostBody(value) {
     var source = String(value == null ? '' : value);
     if (!/<\/?(p|br|b|strong|i|em|u|s|strike|h[1-6]|ul|ol|li|a|img|span|hr|blockquote|div|pre|code|sub|sup)\b/i.test(source)) {
@@ -93,6 +118,13 @@
           var color = child.style && (child.style.color || child.style.fontColor);
           if (/^(?:[1-9]|[1-3][0-9]|40)px$/.test(fontSize) || /^(?:0?\.[0-9]+|[0-9]+(?:\.[0-9]+)?)(?:em|rem|%)$/.test(fontSize)) el.style.fontSize = fontSize;
           if (/^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(color) || /^rgba?\([0-9.,%\s]+\)$/i.test(color)) el.style.color = color;
+        }
+        if (tag === 'div' && /(^|\s)post-widget(\s|$)/.test(child.className || '')) {
+          var wcode = child.getAttribute('data-widget') || '';
+          var wurl = child.getAttribute('data-widget-url') || '';
+          if (wcode && /^[A-Za-z0-9+/=]+$/.test(wcode)) el.setAttribute('data-widget', wcode);
+          else if (/^https?:\/\//i.test(wurl)) el.setAttribute('data-widget-url', wurl);
+          return el;
         }
         if (tag === 'img') {
           var src = child.getAttribute('src') || '';
@@ -203,6 +235,7 @@
       '<span class="byline-dot" aria-hidden="true">·</span><time>' + CN.esc(CN.fmt(p.date)) + '</time>' +
       '<span class="byline-dot" aria-hidden="true">·</span><span>' + CN.readMins(p) + ' min read</span>';
     $('#body').innerHTML = safePostBody(p.body);
+    hydrateWidgets($('#body'));
     // 'inside post' ads render between the article and the action bar; 2+ stack into a rotator
     var inlineAds = CN.adsForSlot(r[3] || [], settings, 'inline');
     var adBox = $('#adInline');
