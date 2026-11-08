@@ -14,18 +14,18 @@
     { test: function (u, h) { return h === 'vimeo.com' && /^\/\d+/.test(u.pathname); }, cat: 'video', label: 'Vimeo', action: 'Watch on Vimeo' },
     { test: function (u, h) { return h === 'tiktok.com' && /\/video\//.test(u.pathname); }, cat: 'video', label: 'TikTok', action: 'Watch on TikTok' },
     { test: function (u, h) { return h === 'instagram.com' && /^\/(p|reel|tv)\//.test(u.pathname); }, cat: 'post', label: 'Instagram', action: 'View Instagram post' },
-    { test: function (u, h) { return h === 'instagram.com' && u.pathname.length > 1; }, cat: 'profile', label: 'Instagram', action: 'View Instagram profile' },
+    { test: function (u, h) { return h === 'instagram.com' && u.pathname.length > 1; }, cat: 'profile', label: 'Instagram', action: 'View Instagram profile', handle: true },
     { test: function (u, h) { return (h === 'twitter.com' || h === 'x.com') && /\/status\//.test(u.pathname); }, cat: 'post', label: 'X (Twitter)', action: 'View post on X' },
-    { test: function (u, h) { return (h === 'twitter.com' || h === 'x.com') && u.pathname.length > 1; }, cat: 'profile', label: 'X (Twitter)', action: 'View X profile' },
+    { test: function (u, h) { return (h === 'twitter.com' || h === 'x.com') && u.pathname.length > 1; }, cat: 'profile', label: 'X (Twitter)', action: 'View X profile', handle: true },
     { test: function (u, h) { return h === 'facebook.com' && /\/posts\/|\/permalink\//.test(u.pathname); }, cat: 'post', label: 'Facebook', action: 'View Facebook post' },
     { test: function (u, h) { return h === 'facebook.com' && u.pathname.length > 1; }, cat: 'profile', label: 'Facebook', action: 'View Facebook profile' },
     { test: function (u, h) { return h === 'linkedin.com' && /\/posts\//.test(u.pathname); }, cat: 'post', label: 'LinkedIn', action: 'View LinkedIn post' },
     { test: function (u, h) { return h === 'linkedin.com' && /\/in\//.test(u.pathname); }, cat: 'profile', label: 'LinkedIn', action: 'View LinkedIn profile' },
     { test: function (u, h) { return h === 'pubmed.ncbi.nlm.nih.gov'; }, cat: 'academic', label: 'PubMed', action: 'View research paper' },
-    { test: function (u, h) { return h === 'doi.org'; }, cat: 'academic', label: 'DOI', action: 'View research paper' },
+    { test: function (u, h) { return h === 'doi.org'; }, cat: 'academic', label: 'Research paper', action: 'View research paper', crossref: true },
     { test: function (u, h) { return h === 'scholar.google.com'; }, cat: 'academic', label: 'Google Scholar', action: 'View on Google Scholar' },
     { test: function (u, h) { return h === 'researchgate.net'; }, cat: 'academic', label: 'ResearchGate', action: 'View research paper' },
-    { test: function (u, h) { return /\.pdf$/i.test(u.pathname); }, cat: 'doc', label: 'PDF document', action: 'Open PDF' }
+    { test: function (u, h) { return /\.pdf$/i.test(u.pathname); }, cat: 'doc', label: 'PDF document', action: 'Open PDF', pdfname: true }
   ];
   function classify(href) {
     var u;
@@ -33,9 +33,24 @@
     var h = u.hostname.replace(/^www\./, '').toLowerCase();
     var out = { href: href, cat: 'link', label: h, action: 'Visit website' };
     for (var i = 0; i < RULES.length; i++) {
-      if (RULES[i].test(u, h)) {
-        out.cat = RULES[i].cat; out.label = RULES[i].label; out.action = RULES[i].action;
-        out.fetchTitle = RULES[i].fetchTitle; break;
+      var r = RULES[i];
+      if (r.test(u, h)) {
+        out.cat = r.cat; out.label = r.label; out.action = r.action;
+        out.fetchTitle = r.fetchTitle;
+        if (r.handle) {
+          var seg = u.pathname.split('/').filter(Boolean);
+          out.label = seg.length ? r.label + ' · ' + seg[0] : r.label;
+        }
+        if (r.pdfname) {
+          var name = decodeURIComponent(u.pathname.split('/').pop() || '');
+          out.label = name || 'PDF document';
+        }
+        if (r.crossref) {
+          var doi = u.pathname.replace(/^\//, '');
+          out.label = 'Research paper';
+          out.doi = doi;
+        }
+        break;
       }
     }
     return out;
@@ -106,6 +121,24 @@
           fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent(info.href))
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (d) { if (d && d.title) { card.querySelector('.sl-title').textContent = d.title; } })
+            .catch(function () {});
+        } catch (e) {}
+      }
+      if (info.doi) {
+        try {
+          fetch('https://api.crossref.org/works/' + encodeURIComponent(info.doi))
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) {
+              var m = d && d.message;
+              if (!m) return;
+              var title = (m.title && m.title[0]) || '';
+              var year = m.issued && m.issued['date-parts'] && m.issued['date-parts'][0] && m.issued['date-parts'][0][0];
+              var journal = (m['container-title'] && m['container-title'][0]) || '';
+              var parts = [];
+              if (title) parts.push(title);
+              if (journal) parts.push(journal + (year ? ' (' + year + ')' : ''));
+              if (parts.length) card.querySelector('.sl-title').textContent = parts.join(' · ');
+            })
             .catch(function () {});
         } catch (e) {}
       }
