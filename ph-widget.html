@@ -1,0 +1,57 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font-family:Georgia,'Times New Roman',serif;background:#12141a;color:#dfe3ec;margin:0;padding:18px}
+.top{display:flex;gap:26px;justify-content:center;flex-wrap:wrap;text-align:center}
+.lab{font-size:13px;color:#9aa3b5;margin-bottom:4px}
+.big{font-size:26px;font-family:Georgia,serif}
+.tag{font-size:13px;margin-top:6px}
+.acid{color:#e8923f}.bas{color:#5b9dd9}.neu{color:#8d96a8}
+.scale{margin:22px auto;max-width:340px;position:relative;height:330px}
+.row{display:flex;align-items:center;height:17px;font-size:13px;color:#aab2c2}
+.row .p{width:70px;text-align:right;padding-right:8px}
+.bar{flex:1;height:8px;border-radius:4px;background:#2a2f3d;position:relative}
+.tick{position:absolute;left:0;top:0;bottom:0;width:100%;border-top:1px solid #3a4152}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:#5b4a3a}
+.num{width:26px;padding-left:8px}
+.cursor{position:absolute;left:66px;right:0;height:0;border-top:2px solid #3f6ea5;opacity:.7}
+.slider{display:flex;align-items:center;gap:12px;margin-top:14px;max-width:360px;margin-left:auto;margin-right:auto}
+input[type=range]{flex:1;accent-color:#5b9dd9}
+.eq{text-align:center;margin-top:20px;font-size:17px;line-height:1.9}
+</style></head><body>
+<div class="top">
+ <div><div class="lab">[H<sub>3</sub>O<sup>+</sup>] (M)</div><div class="big" id="hVal">3.98 &times; 10<sup>-8</sup></div></div>
+ <div><div class="lab">pH</div><div class="big" id="phVal">7.400</div></div>
+</div>
+<div style="text-align:center" class="tag"><span id="cls" class="bas">Basic</span> <span class="neu">&middot; 25 &deg;C</span></div>
+<div class="scale" id="scale"></div>
+<div class="eq">pH = &minus;log<sub>10</sub>([H<sub>3</sub>O<sup>+</sup>])<br><span id="eq2">pH = &minus;log<sub>10</sub>(3.98 &times; 10<sup>-8</sup>) &asymp; 7.400</span></div>
+<div class="slider"><span class="lab">[H<sub>3</sub>O<sup>+</sup>]</span><input type="range" id="sl" min="-16" max="-1" step="0.01" value="-7.4"><span class="lab" id="mVal">3.98e-8 M</span></div>
+<script>
+(function(){
+ var sc=document.getElementById('scale'),rows=[];
+ for(var p=1;p<=15;p++){rows.push(p);}
+ var html='<div class="cursor" id="cur"></div>';
+ for(var i=0;i<rows.length;i++){var e=-i;var p=rows[i];
+  html+='<div class="row"><span class="p">10<sup>'+e+'</sup></span><span class="bar"><span class="fill" id="f'+p+'"></span></span><span class="num">'+i+'</span></div>';}
+ sc.innerHTML=html;
+ function fmt(v){var ex=Math.floor(Math.log10(v));var m=v/Math.pow(10,ex);return m.toFixed(2)+' &times; 10<sup>'+ex+'</sup>';}
+ function fmtPlain(v){return v.toExponential(2).replace('e','e')+' M';}
+ function upd(){
+  var exp=parseFloat(document.getElementById('sl').value);
+  var v=Math.pow(10,exp);
+  var ph=-Math.log10(v);
+  document.getElementById('hVal').innerHTML=fmt(v);
+  document.getElementById('phVal').textContent=ph.toFixed(3);
+  var c=document.getElementById('cls');
+  if(ph<7){c.className='tag acid';c.textContent='Acidic · higher [H3O+]';}
+  else if(ph>7){c.className='tag bas';c.textContent='Basic · lower [H3O+]';}
+  else{c.className='tag neu';c.textContent='Neutral';}
+  document.getElementById('eq2').innerHTML='pH = &minus;log<sub>10</sub>('+fmt(v)+') &asymp; '+ph.toFixed(3);
+  document.getElementById('mVal').textContent=fmtPlain(v);
+  document.getElementById('cur').style.top=(ph<=0?0:ph>=16?330:ph*330/16)+'px';
+  for(var i=1;i<=15;i++){var rowPh=i;var on=rowPh>=ph;document.getElementById('f'+i).style.width=on?'100%':'0%';document.getElementById('f'+i).style.background=ph<7?'#6e4526':ph>7?'#2f4d70':'#3a4152';}
+ }
+ document.getElementById('sl').addEventListener('input',upd);
+ upd();
+})();
+</script></body></html>
