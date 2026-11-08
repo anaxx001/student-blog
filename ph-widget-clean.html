@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive pH Scale</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:24px 16px;background:#111217;color:#e9eaf0;font-family:Arial,sans-serif}
+.widget{width:100%;max-width:620px;margin:auto;padding:25px 20px;background:#202126;border:1px solid #343640;border-radius:28px;overflow:hidden}
+.values{display:grid;grid-template-columns:1fr 1fr;text-align:center;gap:12px}
+.value-label{color:#aeb0bd;font-size:15px;margin-bottom:12px}
+.value{font-family:Georgia,serif;font-size:clamp(25px,6vw,38px);white-space:nowrap}
+.status{text-align:center;margin:18px 0 28px;font-size:15px;color:#72a9f5}
+.status.acidic{color:#e99a5d}
+.status.neutral{color:#b5bac7}
+.scale-title{text-align:center;font-size:13px;color:#aeb0bd;margin-bottom:12px}
+.scale{display:grid;grid-template-columns:1fr 65px 1fr;align-items:stretch;position:relative;height:410px;margin:0 auto 25px;max-width:440px}
+.tick-column{display:flex;flex-direction:column;justify-content:space-between}
+.tick{height:0;position:relative;border-top:1px solid #50515a;display:flex;align-items:center}
+.left .tick{justify-content:flex-end;padding-right:13px}
+.right .tick{justify-content:flex-start;padding-left:13px}
+.tick span{position:relative;top:-12px;font-family:Georgia,serif;font-size:16px;color:#c7c8d0}
+.center-track{position:relative;display:flex;justify-content:center;height:100%}
+.track-acid{position:absolute;top:0;height:50%;width:12px;background:linear-gradient(to bottom,#754b36,#a66d46);border-radius:10px 10px 0 0}
+.track-basic{position:absolute;bottom:0;height:50%;width:12px;background:linear-gradient(to bottom,#385d91,#263f70);border-radius:0 0 10px 10px}
+.slider{position:absolute;z-index:5;top:0;height:100%;width:45px;opacity:0;cursor:ns-resize;writing-mode:vertical-lr;direction:ltr;appearance:none}
+.marker{position:absolute;z-index:3;left:50%;width:18px;height:18px;border:5px solid #3988ed;background:#202126;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+.marker-line{position:absolute;left:0;right:0;height:2px;background:#3988ed;pointer-events:none}
+.bottom-control{border-top:1px solid #42434b;padding-top:22px}
+.formula{text-align:center;font-family:Georgia,serif;font-size:clamp(22px,5vw,32px);margin:10px 0 22px}
+.calculation{text-align:center;color:#c9cbd4;font-family:Georgia,serif;font-size:clamp(15px,3.5vw,20px);margin-bottom:25px}
+.control-row{display:flex;align-items:center;gap:15px;color:#b9bbc5;font-family:Georgia,serif}
+.control-row input{flex:1;accent-color:#3988ed;min-width:0}
+.control-value{font-family:Arial,sans-serif;font-size:13px;white-space:nowrap}
+@media(max-width:380px){.widget{padding:20px 12px}.scale{grid-template-columns:1fr 48px 1fr}.tick span{font-size:14px}}
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="values">
+    <div>
+      <div class="value-label">[H₃O⁺] (M)</div>
+      <div class="value" id="concentration">3.98 × 10<sup>−8</sup></div>
+    </div>
+    <div>
+      <div class="value-label">pH</div>
+      <div class="value" id="phValue">7.400</div>
+    </div>
+  </div>
+  <div class="status" id="status">Basic · lower [H₃O⁺] · 25°C</div>
+  <div class="scale-title">Move the marker to explore the pH scale</div>
+  <div class="scale">
+    <div class="tick-column left" id="leftTicks"></div>
+    <div class="center-track">
+      <div class="track-acid"></div>
+      <div class="track-basic"></div>
+      <div class="marker-line" id="markerLine"></div>
+      <div class="marker" id="marker"></div>
+      <input type="range" id="verticalSlider" class="slider" min="-1" max="15" step="0.001" value="7.4" aria-label="Adjust pH value">
+    </div>
+    <div class="tick-column right" id="rightTicks"></div>
+  </div>
+  <div class="bottom-control">
+    <div class="formula">pH = −log₁₀([H₃O⁺])</div>
+    <div class="calculation" id="calculation">pH = −log₁₀(3.98 × 10⁻⁸) ≈ 7.400</div>
+    <div class="control-row">
+      <span>[H₃O⁺]</span>
+      <input type="range" id="bottomSlider" min="-1" max="15" step="0.001" value="7.4" aria-label="Adjust hydronium concentration">
+      <span class="control-value" id="controlValue">3.98e-8 M</span>
+    </div>
+  </div>
+</div>
+<script>
+var verticalSlider = document.getElementById("verticalSlider");
+var bottomSlider = document.getElementById("bottomSlider");
+var concentration = document.getElementById("concentration");
+var phValue = document.getElementById("phValue");
+var statusEl = document.getElementById("status");
+var calculation = document.getElementById("calculation");
+var controlValue = document.getElementById("controlValue");
+var marker = document.getElementById("marker");
+var markerLine = document.getElementById("markerLine");
+var minPH = -1, maxPH = 15;
+
+function scientificNotation(number) {
+  var exponent = Math.floor(Math.log10(number));
+  var coefficient = number / Math.pow(10, exponent);
+  return { coefficient: coefficient.toFixed(2), exponent: exponent };
+}
+
+function updatePH(value) {
+  var ph = Number(value);
+  var h = Math.pow(10, -ph);
+  var sci = scientificNotation(h);
+  concentration.innerHTML = sci.coefficient + " × 10<sup>" + sci.exponent.toString().replace("-", "−") + "</sup>";
+  phValue.textContent = ph.toFixed(3);
+  controlValue.textContent = h.toExponential(2) + " M";
+  calculation.innerHTML = "pH = −log₁₀(" + sci.coefficient + " × 10<sup>" + sci.exponent + "</sup>) ≈ " + ph.toFixed(3);
+  statusEl.className = "status";
+  if (Math.abs(ph - 7) < 0.0005) {
+    statusEl.textContent = "Neutral · 25°C";
+    statusEl.classList.add("neutral");
+  } else if (ph < 7) {
+    statusEl.textContent = "Acidic · higher [H₃O⁺]";
+    statusEl.classList.add("acidic");
+  } else {
+    statusEl.textContent = "Basic · lower [H₃O⁺]";
+  }
+  var percentage = ((ph - minPH) / (maxPH - minPH)) * 100;
+  marker.style.top = percentage + "%";
+  markerLine.style.top = percentage + "%";
+  verticalSlider.value = ph;
+  bottomSlider.value = ph;
+}
+
+var leftTicks = document.getElementById("leftTicks");
+var rightTicks = document.getElementById("rightTicks");
+for (var ph = minPH; ph <= maxPH; ph++) {
+  var concentrationExponent = -ph;
+  var left = document.createElement("div");
+  left.className = "tick";
+  var right = document.createElement("div");
+  right.className = "tick";
+  left.innerHTML = "<span>10<sup>" + concentrationExponent + "</sup></span>";
+  right.innerHTML = "<span>" + ph + "</span>";
+  leftTicks.appendChild(left);
+  rightTicks.appendChild(right);
+}
+verticalSlider.addEventListener("input", function (e) { updatePH(e.target.value); });
+bottomSlider.addEventListener("input", function (e) { updatePH(e.target.value); });
+updatePH(7.4);
+</script>
+</body>
+</html>
