@@ -219,11 +219,13 @@
     var articleSchema = {
       '@context': 'https://schema.org', '@type': 'BlogPosting',
       headline: p.title, description: description, url: canonicalUrl,
+      mainEntityOfPage: canonicalUrl,
       author: p.author ? { '@type': 'Person', name: p.author } : undefined,
-      publisher: { '@type': 'Organization', name: 'Anaxx Science Hub', url: 'https://anaxx001.github.io/student-blog/' }
+      publisher: { '@type': 'Organization', name: 'Anaxx Science Hub', url: 'https://anaxx001.github.io/student-blog/', logo: { '@type': 'ImageObject', url: 'https://anaxx001.github.io/student-blog/og-image.jpg' } }
     };
     if (p.date) articleSchema.datePublished = p.date;
-    if (p.cover && /^https?:\/\//i.test(p.cover)) articleSchema.image = p.cover;
+    if (p.updated_at) articleSchema.dateModified = p.updated_at;
+    if (p.cover && /^https?:\/\//i.test(p.cover)) { articleSchema.image = p.cover; setMeta('meta[property="og:image"]', 'content', p.cover); setMeta('meta[name="twitter:image"]', 'content', p.cover); }
     var schemaEl = document.getElementById('articleSchema');
     if (schemaEl) schemaEl.textContent = JSON.stringify(articleSchema);
 
