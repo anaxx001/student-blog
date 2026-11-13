@@ -22,6 +22,36 @@
     });
   }
 
+  var syncingStatic = false;
+  $('#syncStaticBtn').addEventListener('click', function () {
+    if (syncingStatic) return;
+    syncingStatic = true;
+    var btn = $('#syncStaticBtn'), msg = $('#syncStaticMsg');
+    btn.disabled = true;
+    msg.textContent = 'Syncing...';
+    DB.auth.session().then(function (session) {
+      var cfg = window.SB_EMAIL_CONFIG;
+      if (!cfg || !session || !session.access_token) throw new Error('Admin session expired. Log in again.');
+      return fetch(cfg.url + '/functions/v1/sync-static-pages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: cfg.anonKey, Authorization: 'Bearer ' + session.access_token },
+        body: '{}'
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (!r.ok || !d.ok) throw new Error(d.error || 'Sync failed.');
+          return d;
+        });
+      });
+    }).then(function (d) {
+      msg.textContent = 'Sync done. Pages written: ' + (d.published || 0) + '. Live on GitHub Pages in about a minute.';
+      toast('Static pages synced.');
+    }).catch(function (e) {
+      msg.textContent = e && e.message ? e.message : 'Sync failed.';
+    }).then(function () {
+      btn.disabled = false; syncingStatic = false;
+    });
+  });
+
   function toast(m) { CN.toast(m); }
   function setMsg(id, m) { $(id).textContent = m || ''; }
   function friendly(err) {
