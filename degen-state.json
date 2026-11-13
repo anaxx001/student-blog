@@ -2,14 +2,14 @@
  "schema": 1,
  "mode": "PAPER",
  "currency": "USD",
- "generated_at": "2026-11-13T21:00:48.718184+00:00",
- "last_scan": "2026-11-13T21:00:48.717583+00:00",
+ "generated_at": "2026-11-13T21:02:18.686228+00:00",
+ "last_scan": "2026-11-13T21:02:18.685508+00:00",
  "start_cash": 1000.0,
  "cash": 800.0,
- "positions_value": 162.69273154714404,
+ "positions_value": 165.6973201236372,
  "invested_cost": 200.0,
- "equity": 962.692731547144,
- "unrealized": -37.307268452855965,
+ "equity": 965.6973201236372,
+ "unrealized": -34.30267987636279,
  "realized": 0.0,
  "fees_total": 0.5,
  "config": {
@@ -28,8 +28,8 @@
    "fees": 0.125,
    "realized": 0.0,
    "opened": "2026-11-13T20:29:32.445594+00:00",
-   "last_price": 0.0004059,
-   "last_price_ts": "2026-11-13T21:00:48.548614+00:00",
+   "last_price": 0.0004466,
+   "last_price_ts": "2026-11-13T21:02:18.554580+00:00",
    "dex": "pumpswap"
   },
   {
@@ -41,8 +41,8 @@
    "fees": 0.125,
    "realized": 0.0,
    "opened": "2026-11-13T20:29:32.467203+00:00",
-   "last_price": 0.0002887,
-   "last_price_ts": "2026-11-13T21:00:48.578913+00:00",
+   "last_price": 0.0002759,
+   "last_price_ts": "2026-11-13T21:02:18.582699+00:00",
    "dex": "pumpswap"
   },
   {
@@ -55,7 +55,7 @@
    "realized": 0.0,
    "opened": "2026-11-13T20:29:32.494947+00:00",
    "last_price": 9.905e-05,
-   "last_price_ts": "2026-11-13T21:00:48.635469+00:00",
+   "last_price_ts": "2026-11-13T21:02:18.613584+00:00",
    "dex": "pumpswap"
   },
   {
@@ -68,7 +68,7 @@
    "realized": 0.0,
    "opened": "2026-11-13T20:31:02.371894+00:00",
    "last_price": 3.207e-13,
-   "last_price_ts": "2026-11-13T21:00:48.717492+00:00",
+   "last_price_ts": "2026-11-13T21:02:18.685403+00:00",
    "dex": "pumpswap"
   }
  ],
@@ -373,6 +373,18 @@
   {
    "id": "ea5070e819",
    "ts": "2026-11-13T21:00:48.717568+00:00",
+   "status": "failed",
+   "side": "SELL",
+   "token": "8BiqXuErdg662uBkorWrEh1m97bkXSMZG7b6ZbB9ijyZ",
+   "symbol": "Sakura",
+   "reason": "liquidity too thin ($0)",
+   "via": "auto",
+   "qty": 6972887.755653158,
+   "assume": null
+  },
+  {
+   "id": "fb7bb4475e",
+   "ts": "2026-11-13T21:02:18.685493+00:00",
    "status": "failed",
    "side": "SELL",
    "token": "8BiqXuErdg662uBkorWrEh1m97bkXSMZG7b6ZbB9ijyZ",
