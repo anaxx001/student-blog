@@ -106,6 +106,25 @@ canvas{width:100%;display:block;touch-action:pan-y}
 .spin{display:inline-block;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 @media (min-width:700px){.tbar,.tabbar{left:50%;right:auto;width:560px;margin-left:-280px}}
+
+.paper{flex:none;font-size:10px;font-weight:800;letter-spacing:.08em;border:1px solid var(--acc);color:var(--acc);border-radius:999px;padding:2px 8px;margin-right:6px}
+.paper.ro{border-color:#ffb454;color:#ffb454}
+.search{display:flex;gap:8px;align-items:center;margin:2px 0 6px}
+.search input{flex:1;min-width:0;min-height:48px;background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:14px;padding:0 14px;font-size:16px}
+.search input:focus{outline:none;border-color:var(--acc)}
+.acts3{grid-template-columns:1fr 1fr 1fr}
+.li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:14px}
+.li:last-child{border:none}
+.li .k{color:var(--mut)}
+.li b{text-align:right}
+.src{font-size:11px;color:var(--mut);margin-top:8px}
+.stale{color:#ffb454}
+.det .sheet{max-height:88vh;overflow-y:auto}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.dgrid div{background:var(--card2);border-radius:10px;padding:8px;min-width:0}
+.dgrid .l{font-size:11px;color:var(--mut);display:block}
+.dgrid .v{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.tabbtn{font-size:10px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -117,7 +136,7 @@ canvas{width:100%;display:block;touch-action:pan-y}
     <button class="ib" id="refreshBtn" title="Refresh now" aria-label="Refresh">⟳</button>
     <button class="ib" id="resetBtn" title="Reset to $1,000" aria-label="Reset">↺</button>
   </div>
-  <div class="status" id="status"></div>
+  <div class="status"><span class="paper" title="Simulated money, real market data">PAPER MODE</span><span id="status"></span></div>
   <div class="chips" id="chainChips" title="Chain"></div>
 </div></header>
 
@@ -125,14 +144,13 @@ canvas{width:100%;display:block;touch-action:pan-y}
 <div id="errBox"></div>
 
 <section class="sect act" id="sect-disc">
-  <div class="sh">🔥 <span>Trending</span><span class="n" id="trendNote"></span></div>
-  <div id="trendList"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
-  <div class="empty" id="trendEmpty" style="display:none"><span class="big">🫥</span>No trending pools yet</div>
-  <div class="sh">🆕 <span>New pools</span><span class="n" id="newNote"></span></div>
-  <div id="newList"></div>
-  <div class="empty" id="newEmpty" style="display:none"><span class="big">🫥</span>No new pools yet</div>
+  <div class="search"><input id="q" type="search" inputmode="search" autocomplete="off" placeholder="Search name, symbol or mint" aria-label="Search token"/><button class="ib" id="qClear" title="Clear search" aria-label="Clear">✕</button></div>
+  <div class="chips" id="catChips" title="Category"></div>
+  <div class="small mut" id="catNote" style="margin:2px 2px 4px"></div>
+  <div id="searchList"></div>
+  <div id="catList"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+  <div class="empty" id="catEmpty" style="display:none"><span class="big">🫥</span><span id="catEmptyTxt">Nothing here yet</span></div>
 </section>
-
 <section class="sect" id="sect-chart">
   <div class="card">
     <div class="trow">
@@ -141,11 +159,12 @@ canvas{width:100%;display:block;touch-action:pan-y}
       <div style="text-align:right"><div class="small" style="font-weight:800" id="chPrice">—</div><div class="small" id="chChg"></div></div>
     </div>
     <div class="seg">
-      <button data-tf="minute" title="5 minute candles">5m</button>
-      <button data-tf="hour" title="1 hour candles">1h</button>
-      <button data-tf="day" title="1 day candles">1d</button>
+      <button data-tf="m5" title="5 minute candles">5m</button>
+      <button data-tf="h1" title="1 hour candles">1h</button>
+      <button data-tf="h4" title="4 hour candles">4h</button>
+      <button data-tf="d1" title="1 day candles">1d</button>
     </div>
-    <div class="chartwrap"><canvas id="chart" height="260"></canvas></div>
+    <div class="chartwrap"><canvas id="chart" height="300"></canvas></div>
     <div class="small mut" id="chartRange" style="margin-top:6px;text-align:center"></div>
   </div>
   <div class="card" id="posLineCard" style="display:none"><div class="small" id="posLine"></div></div>
@@ -171,13 +190,39 @@ canvas{width:100%;display:block;touch-action:pan-y}
     <div class="kpi" title="Worst closed trade"><div class="l">💀 Worst</div><div class="n" id="worst">—</div></div>
     <div class="kpi" title="Biggest open bag"><div class="l">🎒 Biggest bag</div><div class="n" id="stBag">—</div></div>
     <div class="kpi" title="Realized P&L"><div class="l">✓ Realized</div><div class="n" id="stReal">—</div></div>
+    <div class="kpi" title="Fees paid"><div class="l">🧾 Fees paid</div><div class="n" id="stFees">—</div></div>
   </div>
   <div class="sh">🧾 <span>History</span><button class="ib" id="clearHist" title="Clear history" aria-label="Clear history" style="margin-left:auto">🗑</button></div>
   <div class="card" id="histCard"><div id="hist"></div></div>
   <div class="empty" id="histEmpty"><span class="big">🧾</span>No trades yet</div>
+  <div class="card" id="setCard"><div class="sh" style="margin-top:0">⚙️ <span>Settings and assumptions</span></div>
+    <div class="li"><span class="k">Mode</span><b>PAPER (no real money)</b></div>
+    <div class="li"><span class="k">Fee</span><b>0.25% per side</b></div>
+    <div class="li"><span class="k">Slippage</span><b>0.5% + size / (pool liquidity / 2)</b></div>
+    <div class="li"><span class="k">Max slippage</span><b>30% (order rejected above)</b></div>
+    <div class="li"><span class="k">Stale price</span><b>over 60s: trade rejected</b></div>
+    <div class="src">App Wallet lives on this device only (localStorage). Bot Wallet is a separate read-only view published by the bot. The two are not one shared account yet: that needs a real backend. There is no login or user isolation yet, this is single-user for now. MEV, routing and on-chain settlement are not simulated.</div>
+  </div>
   <div class="card" id="tweetCard" style="display:none">
     <div class="trow"><div class="nm" style="white-space:normal;font-size:13px">📣 <span id="tweet"></span></div><button class="ib" id="shareBtn" title="Copy summary" aria-label="Share">⧉</button></div>
   </div>
+</section>
+<section class="sect" id="sect-bot">
+  <div class="card"><div class="trow"><span class="ico">🤖</span><div class="nm"><span class="sb" id="botNote">loading…</span><div style="font-size:17px;font-weight:800">Bot wallet</div></div><span class="paper ro" style="margin:0">READ ONLY</span></div></div>
+  <div class="sum">
+    <div class="kpi"><div class="l">💰 Equity</div><div class="n" id="bEquity">—</div></div>
+    <div class="kpi"><div class="l">💵 Cash</div><div class="n" id="bCash">—</div></div>
+    <div class="kpi"><div class="l">📈 Unrealized</div><div class="n" id="bUnreal">—</div></div>
+    <div class="kpi"><div class="l">✓ Realized</div><div class="n" id="bReal">—</div></div>
+    <div class="kpi"><div class="l">🧾 Fees</div><div class="n" id="bFees">—</div></div>
+    <div class="kpi"><div class="l">📦 Open</div><div class="n" id="bOpen">—</div></div>
+  </div>
+  <div class="sh">📦 <span>Bot positions</span></div>
+  <div id="botPos"></div>
+  <div class="sh">⏳ <span>Pending orders</span></div>
+  <div id="botOrders"></div>
+  <div class="sh">🧾 <span>Bot transactions</span></div>
+  <div class="card" id="botTxs"></div>
 </section>
 </main>
 
@@ -200,6 +245,13 @@ canvas{width:100%;display:block;touch-action:pan-y}
   </div>
 </div></div>
 
+<div class="pop det" id="det"><div class="sheet">
+  <div class="grip"></div>
+  <div class="trow"><span class="ico" id="dIco">?</span><div class="nm"><span class="sb" id="dSub"></span><div id="dName" style="font-size:18px">—</div></div><div style="text-align:right"><div style="font-weight:800" id="dPrice">—</div><div class="small" id="dChg"></div></div><button class="ib" id="detClose" title="Close" aria-label="Close">✕</button></div>
+  <div class="dgrid" id="dGrid"></div>
+  <div class="src" id="dSrc"></div>
+  <div class="acts" style="margin-top:14px"><button class="btn acc" id="dChart" title="Open chart">📊</button><button class="btn buy" id="dTrade" title="Trade this coin">⚡</button></div>
+</div></div>
 <div class="pop" id="pop"><div class="sheet">
   <div class="grip"></div>
   <div class="trow"><b id="popTitle" style="font-size:18px;flex:1">Confirm</b><button class="ib" id="popClose" title="Close" aria-label="Close">✕</button></div>
@@ -212,11 +264,12 @@ canvas{width:100%;display:block;touch-action:pan-y}
   <button class="tabbtn" data-tab="chart" title="Price chart" aria-label="Chart"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>Chart</button>
   <button class="tabbtn" data-tab="port" title="Portfolio and positions" aria-label="Portfolio"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="3"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>Portfolio<span class="badge" id="posBadge" style="display:none"></span></button>
   <button class="tabbtn" data-tab="stats" title="Stats and history" aria-label="Stats"><svg viewBox="0 0 24 24"><path d="M5 21V10M12 21V3M19 21v-7"/></svg>Stats</button>
+  <button class="tabbtn" data-tab="bot" title="Bot wallet (read only)" aria-label="Bot wallet"><svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 4v4"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/></svg>Bot</button>
 </nav>
 <div class="toast" id="toast"></div>
 
 <script>
-/* Paper Degen v3 mobile UI. Same data logic as v2: GeckoTerminal discovery + DexScreener prices, ES5, no deps. */
+/* Paper Degen v4: search, categories, detail sheet, candles, fee+slippage preview, bot wallet view. Paper Degen v3 mobile UI. Same data logic as v2: GeckoTerminal discovery + DexScreener prices, ES5, no deps. */
 var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 try{ if(tg){ tg.ready(); tg.expand(); if(tg.setHeaderColor) tg.setHeaderColor("#0f1015"); if(tg.setBackgroundColor) tg.setBackgroundColor("#0f1015"); if(tg.disableVerticalSwipes) tg.disableVerticalSwipes(); } }catch(e){}
 function haptic(kind){ try{ var h=tg&&tg.HapticFeedback; if(!h) return; if(kind==="ok") h.notificationOccurred("success"); else if(kind==="err") h.notificationOccurred("error"); else h.impactOccurred("light"); }catch(e){} }
@@ -231,20 +284,26 @@ var CHAINS = [
 var GT = "https://api.geckoterminal.com/api/v2/networks/";
 var DS = "https://api.dexscreener.com/latest/dex/tokens/";
 var KEY = "paperdegen_v2";
+var FEE = 0.0025, SLIP = 0.005, MAXIMP = 0.30, MINLIQ = 1000, STALE_MS = 60000;
+var BOT_URL = "https://raw.githubusercontent.com/anaxx001/student-blog/main/degen-state.json";
+var TFS = {m5:["minute",5,"5m"], h1:["hour",1,"1h"], h4:["hour",4,"4h"], d1:["day",1,"1d"]};
+function dsChain(c){ return c==="eth"?"ethereum":c; }
+function gtChain(c){ return c==="ethereum"?"eth":c; }
 var state = {
-  cash: 1000, positions: {}, history: [],
-  chain: "solana", tf: "hour", tab: "disc",
+  cash: 1000, positions: {}, history: [], fees: 0, cat: "trend", query: "", searchRows: [], quotes: {}, candles: [], detRow: null, bot: null, botTs: 0, botErr: "",
+  chain: "solana", tf: "h1", tab: "disc",
   trend: [], newPools: [], poolsByKey: {}, icons: {},
   sel: null, prices: {}, tickTimer: null, gtBusy: false, gtBackoffUntil: 0,
   chartPts: [], chartTimes: [], chartPair: null, expanded: ""
 };
 function el(id){ return document.getElementById(id); }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify({cash:state.cash, positions:state.positions, history:state.history.slice(-300), chain:state.chain, tf:state.tf})); }catch(e){} }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({cash:state.cash, positions:state.positions, history:state.history.slice(-300), chain:state.chain, tf:state.tf, fees:state.fees})); }catch(e){} }
 function load(){
   try{ var d = JSON.parse(localStorage.getItem(KEY)||"null"); if(!d) return;
     if(typeof d.cash==="number") state.cash=d.cash;
     state.positions=d.positions||{}; state.history=d.history||[];
-    if(d.chain) state.chain=d.chain; if(d.tf) state.tf=d.tf;
+    if(d.chain) state.chain=d.chain; if(d.tf) state.tf=d.tf; if(typeof d.fees==="number") state.fees=d.fees;
+    var tfmap={minute:"m5",hour:"h1",day:"d1"}; if(tfmap[state.tf]) state.tf=tfmap[state.tf]; if(!TFS[state.tf]) state.tf="h1";
   }catch(e){}
 }
 function fmt$(n){
@@ -317,6 +376,9 @@ function parsePool(p){
     chg24: (a.price_change_percentage||{}).h24!==undefined? parseFloat(a.price_change_percentage.h24): null,
     liq: parseFloat(a.reserve_in_usd)||0,
     fdv: parseFloat(a.fdv_usd)||parseFloat(a.market_cap_usd)||0,
+    mcap: parseFloat(a.market_cap_usd)||0,
+    vol24: parseFloat((a.volume_usd||{}).h24)||0,
+    buys: (((a.transactions||{}).h24)||{}).buys, sells: (((a.transactions||{}).h24)||{}).sells,
     created: a.pool_created_at||"",
     dex: dex, chain: p.id.split("_")[0]||state.chain
   };
@@ -342,8 +404,6 @@ function loadFeed(){
   function fin(){
     done++; if(done===2){
       el("status").textContent = "● live · GeckoTerminal · "+new Date().toLocaleTimeString();
-      el("trendNote").textContent = state.trend.length+" coins";
-      el("newNote").textContent = state.newPools.length+" coins";
       renderDiscovery(); refreshPositionPrices();
       rotateChain();
     }
@@ -378,7 +438,6 @@ function rotateChain(){
     var i=0; CHAINS.forEach(function(c,ix){ if(c.id===state.chain) i=ix; });
     var next = CHAINS[(i+1)%CHAINS.length].id;
     state.chain=next; save(); renderChains();
-    if(state.sel && state.sel.chain!==next){ state.sel=null; renderSel(); updateBar(); }
     loadFeed();
   }, 45000);
 }
@@ -401,36 +460,139 @@ function cardHTML(r){
     + '<span class="cmid"><b>'+esc(r.symbol)+(pos?' <span class="up" title="You hold this">●</span>':'')+'</b><span class="s">'+esc(r.dex)+(r.created?' · '+age(r.created):'')+' · liq '+fmtK(r.liq)+'</span></span>'
     + '<span class="cr"><span class="p">'+fmt$(pr)+'</span><br><span class="c '+(c>=0?"up":"dn")+'">'+(c!==null&&c!==undefined? pct(c):"—")+'</span></span></button>'
     + '<div class="cdet"><div class="in"><div class="kv"><div><span class="l">Liquidity</span><br><span class="v">'+fmtK(r.liq)+'</span></div><div><span class="l">FDV</span><br><span class="v">'+fmtK(r.fdv)+'</span></div><div><span class="l">Age</span><br><span class="v">'+(age(r.created)||"—")+'</span></div></div>'
-    + '<div class="acts"><button class="btn acc" data-go="chart" title="Open chart">📊 Chart</button><button class="btn" data-go="trade" title="Trade this coin">⚡ Trade</button></div></div></div>';
+    + '<div class="acts acts3"><button class="btn" data-go="info" title="Token details">ⓘ</button><button class="btn acc" data-go="chart" title="Open chart">📊</button><button class="btn" data-go="trade" title="Trade this coin">⚡</button></div></div></div>';
+}
+function allRows(){
+  var seen={}, out=[];
+  state.trend.concat(state.newPools).forEach(function(r){ var k=keyOf(r); if(!seen[k]){ seen[k]=1; out.push(r); } });
+  return out;
+}
+var CATS=[["trend","🔥","Trending"],["new","🆕","New pairs"],["gain","🚀","Gainers"],["lose","💀","Losers"],["vol","📊","Volume"]];
+function rowsForCat(c){
+  var rows;
+  if(c==="trend") return state.trend;
+  if(c==="new") return state.newPools.slice().sort(function(a,b){ return new Date(b.created)-new Date(a.created); });
+  rows=allRows();
+  if(c==="gain") return rows.filter(function(r){ return typeof r.chg24==="number"&&!isNaN(r.chg24)&&r.chg24>0; }).sort(function(a,b){ return b.chg24-a.chg24; });
+  if(c==="lose") return rows.filter(function(r){ return typeof r.chg24==="number"&&!isNaN(r.chg24)&&r.chg24<0; }).sort(function(a,b){ return a.chg24-b.chg24; });
+  if(c==="vol") return rows.filter(function(r){ return r.vol24>0; }).sort(function(a,b){ return b.vol24-a.vol24; });
+  return [];
+}
+function renderCats(){
+  var box=el("catChips"); box.innerHTML="";
+  var loaded=state.trend.length+state.newPools.length>0;
+  var visible=CATS.filter(function(c){ return !loaded || c[0]==="trend" || c[0]==="new" || rowsForCat(c[0]).length>0; });
+  if(!visible.some(function(c){ return c[0]===state.cat; })) state.cat="trend";
+  visible.forEach(function(c){
+    var b=document.createElement("button"); b.className="chip"+(c[0]===state.cat?" act":"");
+    b.innerHTML=c[1]+" "+c[2]; b.title=c[2];
+    b.onclick=function(){ haptic(); state.cat=c[0]; state.expanded=""; renderDiscovery(); };
+    box.appendChild(b);
+  });
+}
+function fillList(boxId, emptyId, rows, max){
+  var box=el(boxId); box.innerHTML="";
+  var em=el(emptyId); if(em) em.style.display = rows.length? "none":"block";
+  rows.slice(0,max||30).forEach(function(r){
+    var k=boxId+keyOf(r);
+    var d=document.createElement("div");
+    d.className="coin"+(state.sel&&keyOf(state.sel)===keyOf(r)?" sel":"")+(state.expanded===k?" open":"");
+    d.innerHTML=cardHTML(r);
+    d.querySelector(".chead").onclick=function(){
+      haptic();
+      var was=state.expanded===k;
+      state.expanded=was?"":k;
+      if(!was){ setSel(r); }
+      var all=document.querySelectorAll("#sect-disc .coin.open"); for(var i=0;i<all.length;i++) all[i].className=all[i].className.replace(" open","");
+      var sl=document.querySelectorAll("#sect-disc .coin.sel"); for(var j=0;j<sl.length;j++) sl[j].className=sl[j].className.replace(" sel","");
+      if(!was){ d.className+=" open sel"; }
+      d.querySelector(".chead").setAttribute("aria-expanded",String(!was));
+    };
+    d.querySelector('[data-go="info"]').onclick=function(){ haptic(); openDetail(r); };
+    d.querySelector('[data-go="chart"]').onclick=function(){ haptic(); setSel(r); switchTab("chart"); };
+    d.querySelector('[data-go="trade"]').onclick=function(){ haptic(); setSel(r); var a=el("amt"); try{a.focus();a.select();}catch(e){} };
+    box.appendChild(d);
+  });
 }
 function renderDiscovery(){
-  function fill(boxId, emptyId, rows){
-    var box=el(boxId); box.innerHTML="";
-    el(emptyId).style.display = rows.length? "none":"block";
-    rows.slice(0,30).forEach(function(r){
-      var k=boxId+keyOf(r);
-      var d=document.createElement("div");
-      d.className="coin"+(state.sel&&keyOf(state.sel)===keyOf(r)?" sel":"")+(state.expanded===k?" open":"");
-      d.innerHTML=cardHTML(r);
-      d.querySelector(".chead").onclick=function(){
-        haptic();
-        var was=state.expanded===k;
-        state.expanded=was?"":k;
-        if(!was){ setSel(r); }
-        var all=document.querySelectorAll("#sect-disc .coin.open"); for(var i=0;i<all.length;i++) all[i].className=all[i].className.replace(" open","");
-        var sl=document.querySelectorAll("#sect-disc .coin.sel"); for(var j=0;j<sl.length;j++) sl[j].className=sl[j].className.replace(" sel","");
-        if(!was){ d.className+=" open sel"; }
-        d.querySelector(".chead").setAttribute("aria-expanded",String(!was));
-      };
-      d.querySelector('[data-go="chart"]').onclick=function(){ haptic(); setSel(r); switchTab("chart"); };
-      d.querySelector('[data-go="trade"]').onclick=function(){ haptic(); setSel(r); var a=el("amt"); try{a.focus();a.select();}catch(e){} };
-      box.appendChild(d);
-    });
+  renderCats();
+  var q=state.query;
+  if(q&&q.length>=2){
+    el("catChips").style.display="none"; el("catList").style.display="none";
+    el("catNote").textContent=state.searchRows.length+" results for \""+q+"\" · DexScreener search";
+    el("catEmptyTxt").textContent="No pairs found on supported chains";
+    fillList("searchList","catEmpty",state.searchRows,20);
+  } else {
+    el("catChips").style.display=""; el("catList").style.display=""; el("searchList").innerHTML="";
+    var rows=rowsForCat(state.cat);
+    var names={trend:"GeckoTerminal trending pools",new:"GeckoTerminal newest pools",gain:"top 24h movers among loaded pools",lose:"worst 24h movers among loaded pools",vol:"24h volume among loaded pools"};
+    el("catNote").textContent=rows.length+" on "+state.chain+" · "+names[state.cat];
+    el("catEmptyTxt").textContent="Nothing here yet";
+    fillList("catList","catEmpty",rows,30);
   }
-  fill("trendList","trendEmpty",state.trend);
-  fill("newList","newEmpty",state.newPools);
   updateBar();
 }
+var searchT=null;
+function doSearch(){
+  var q=el("q").value.trim(); state.query=q;
+  if(q.length<2){ state.searchRows=[]; renderDiscovery(); return; }
+  fetchJSON("https://api.dexscreener.com/latest/dex/search?q="+encodeURIComponent(q), function(err,data){
+    if(el("q").value.trim()!==q) return;
+    if(err||!data){ showErr("Search failed: "+(err?err.message:"no data"),false); return; }
+    showErr("");
+    var okChains={}; CHAINS.forEach(function(c){ okChains[dsChain(c.id)]=c.id; });
+    var best={};
+    (data.pairs||[]).forEach(function(p){
+      var ch=okChains[p.chainId]; if(!ch||!p.baseToken||!p.priceUsd) return;
+      var liq=(p.liquidity&&p.liquidity.usd)||0;
+      var k=ch+":"+p.baseToken.address;
+      if(best[k]&&best[k].liq>=liq) return;
+      var tx=(p.txns&&p.txns.h24)||{};
+      var r={id:k, pool:p.pairAddress, token:p.baseToken.address, symbol:p.baseToken.symbol||"?", name:p.baseToken.name||"",
+        price:parseFloat(p.priceUsd)||0, chg24:(p.priceChange&&typeof p.priceChange.h24==="number")?p.priceChange.h24:null,
+        liq:liq, fdv:p.fdv||0, mcap:p.marketCap||0, vol24:(p.volume&&p.volume.h24)||0, buys:tx.buys, sells:tx.sells,
+        created:p.pairCreatedAt||"", dex:p.dexId||"?", chain:ch};
+      best[k]=r;
+      if(p.info&&p.info.imageUrl) state.icons[ch+":"+r.token]=p.info.imageUrl;
+    });
+    state.searchRows=Object.keys(best).map(function(k){ return best[k]; }).sort(function(a,b){ return b.liq-a.liq; });
+    state.searchRows.forEach(function(r){ state.poolsByKey[keyOf(r)]=r; });
+    renderDiscovery();
+  });
+}
+el("q").oninput=function(){ clearTimeout(searchT); searchT=setTimeout(doSearch,450); };
+el("qClear").onclick=function(){ haptic(); el("q").value=""; state.query=""; state.searchRows=[]; renderDiscovery(); };
+
+function openDetail(r){
+  setSel(r); state.detRow=r; renderDetail(r);
+  el("det").className="pop det open";
+  refreshLivePrice(r.token, r.chain, function(){ if(state.detRow===r) renderDetail(r); });
+}
+function closeDetail(){ el("det").className="pop det"; state.detRow=null; }
+function renderDetail(r){
+  var k=posKeyFor(r), q=state.quotes[k], pr=q?q.price:r.price, c=r.chg24;
+  el("dIco").outerHTML=iconHTML(r.symbol,iconFor(r.token,r.chain),"dIco");
+  el("dName").textContent=r.symbol+(r.name&&r.name!==r.symbol&&r.name.indexOf("/")<0?" · "+r.name:"");
+  el("dSub").textContent=r.chain+" · "+r.dex;
+  el("dPrice").textContent=fmt$(pr);
+  el("dChg").textContent=(c!==null&&c!==undefined&&!isNaN(c))?pct(c):""; el("dChg").className="small "+(c>=0?"up":"dn");
+  function cell(l,v){ return '<div><span class="l">'+l+'</span><span class="v">'+v+'</span></div>'; }
+  var tot=(r.buys||0)+(r.sells||0);
+  var tx=(r.buys!==undefined&&r.sells!==undefined&&tot>0)? '<span class="up">'+r.buys+'</span> / <span class="dn">'+r.sells+'</span>' : "—";
+  el("dGrid").innerHTML=cell("Price",fmt$(pr))+cell("24h change",(c!==null&&c!==undefined&&!isNaN(c))?pct(c):"—")
+    +cell("Market cap",r.mcap?fmtK(r.mcap):"—")+cell("FDV",r.fdv?fmtK(r.fdv):"—")
+    +cell("Liquidity",fmtK(r.liq))+cell("Volume 24h",r.vol24?fmtK(r.vol24):"—")
+    +cell("Buys / sells 24h",tx)+cell("Pair age",r.created?age(r.created):"—")
+    +cell("DEX",esc(r.dex))+cell("Chain",esc(r.chain));
+  var src;
+  if(q){ var sec=Math.max(0,Math.round((Date.now()-q.ts)/1000)); src='Price: DexScreener, fetched '+new Date(q.ts).toLocaleTimeString()+' ('+sec+'s ago)'+(sec>60?' <span class="stale">· STALE</span>':''); }
+  else src='Price: loading from DexScreener… showing feed value';
+  el("dSrc").innerHTML=src+'<br>Pool stats: GeckoTerminal / DexScreener listing. Missing fields show a dash, never estimated.<br>'+esc(r.token);
+}
+el("detClose").onclick=closeDetail;
+el("det").onclick=function(e){ if(e.target===el("det")) closeDetail(); };
+el("dChart").onclick=function(){ haptic(); closeDetail(); switchTab("chart"); };
+el("dTrade").onclick=function(){ haptic(); closeDetail(); switchTab("disc"); try{ el("amt").focus(); }catch(e){} };
 function setSel(r){ state.sel=r; renderSel(); updateBar(); if(r.token) refreshLivePrice(r.token); }
 function posKeyFor(r){ return r.chain+":"+r.token; }
 function posForSel(){ return state.sel? state.positions[posKeyFor(state.sel)] : null; }
@@ -458,36 +620,47 @@ function renderSel(){
   el("posLine").textContent = pos? ("📦 Holding "+fmtP(pos.qty)+" @ avg "+fmt$(pos.avg)+(pr? " · now "+fmt$(pr)+" · P&L "+sgn$(pos.qty*(pr-pos.avg)):"")) : "📦 No position in this coin";
 }
 function updateBar(){
-  var show=!!state.sel && state.tab!=="stats";
+  var show=!!state.sel && state.tab!=="stats" && state.tab!=="bot";
   el("tbar").className="tbar"+(show?" show":"");
   document.body.className=show?"hasbar":"";
 }
 
 /* ---------- live prices via DexScreener ---------- */
-function refreshLivePrice(token){
-  if(!token) return;
+function refreshLivePrice(token, chain, cb){
+  if(!token){ if(cb) cb(false); return; }
+  chain = chain || (state.sel&&state.sel.token===token? state.sel.chain : state.chain);
   fetchJSON(DS+token, function(err,data){
-    if(err||!data||!data.pairs||!data.pairs.length) return;
-    var pairs=data.pairs.filter(function(p){ return p.chainId===state.chain; });
-    if(!pairs.length) pairs=data.pairs;
+    if(err||!data||!data.pairs||!data.pairs.length){ if(cb) cb(false); return; }
+    var want=dsChain(chain);
+    var pairs=data.pairs.filter(function(p){ return p.chainId===want; });
+    if(!pairs.length){ if(cb) cb(false); return; }
     pairs.sort(function(a,b){ return (b.liquidity&&b.liquidity.usd||0)-(a.liquidity&&a.liquidity.usd||0); });
-    var p=pairs[0];
-    if(p.priceUsd) state.prices[state.chain+":"+token]=parseFloat(p.priceUsd);
-    if(p.info&&p.info.imageUrl&&!state.icons[state.chain+":"+token]) state.icons[state.chain+":"+token]=p.info.imageUrl;
-    if(state.sel&&state.sel.token===token){
-      if(p.priceChange&&p.priceChange.h24!==undefined) state.sel.chg24=p.priceChange.h24;
-      if(p.liquidity&&p.liquidity.usd) state.sel.liq=p.liquidity.usd;
-      if(p.fdv) state.sel.fdv=p.fdv;
+    var p=pairs[0], k=chain+":"+token;
+    if(p.priceUsd){
+      var px=parseFloat(p.priceUsd);
+      state.prices[k]=px;
+      state.quotes[k]={price:px, liq:(p.liquidity&&p.liquidity.usd)||0, ts:Date.now(), src:"DexScreener"};
+    }
+    if(p.info&&p.info.imageUrl&&!state.icons[k]) state.icons[k]=p.info.imageUrl;
+    if(state.sel&&state.sel.token===token&&state.sel.chain===chain){
+      var s0=state.sel;
+      if(p.priceChange&&p.priceChange.h24!==undefined) s0.chg24=p.priceChange.h24;
+      if(p.liquidity&&p.liquidity.usd) s0.liq=p.liquidity.usd;
+      if(p.fdv) s0.fdv=p.fdv;
+      if(p.marketCap) s0.mcap=p.marketCap;
+      if(p.volume&&p.volume.h24) s0.vol24=p.volume.h24;
+      if(p.txns&&p.txns.h24){ s0.buys=p.txns.h24.buys; s0.sells=p.txns.h24.sells; }
+      if(p.pairCreatedAt&&!s0.created) s0.created=p.pairCreatedAt;
       renderSel();
     }
     renderAccount();
+    if(cb) cb(true);
   });
 }
 function refreshPositionPrices(){
-  var seen={}, tokens=[];
-  Object.keys(state.positions).forEach(function(k){ var t=k.split(":")[1]; if(t&&!seen[t]){ seen[t]=1; tokens.push(t); } });
-  tokens.forEach(function(t){ refreshLivePrice(t); });
-  el("tickNote").textContent = tokens.length? "● live" : "";
+  var seen={}, n=0;
+  Object.keys(state.positions).forEach(function(k){ var pp=k.split(":"); var ch=pp[0], t=pp[1]; if(t&&!seen[k]){ seen[k]=1; n++; refreshLivePrice(t,ch); } });
+  el("tickNote").textContent = n? "● live" : "";
   setTimeout(function(){ renderPositions(); renderAccount(); }, 800);
 }
 
@@ -545,43 +718,97 @@ el("popClose").onclick=closePop; el("popCancel").onclick=closePop;
 el("pop").onclick=function(e){ if(e.target===el("pop")) closePop(); };
 el("popOk").onclick=function(){ var f=pend; closePop(); if(f) f(); };
 
+function row(k,v){ return '<div class="li"><span class="k">'+k+'</span><b>'+v+'</b></div>'; }
+function pctS(x){ return (x*100).toFixed(2)+"%"; }
+function simulate(side, usd, price, liq){
+  var imp=usd/((liq||0)/2||1e-9), slip=SLIP+imp;
+  return {imp:imp, slip:slip, px: side==="BUY"? price*(1+slip) : price*(1-slip)};
+}
+function quoteErr(r){
+  var q=state.quotes[posKeyFor(r)];
+  if(!q||!q.price) return "No live price yet";
+  var a=Date.now()-q.ts; if(a>STALE_MS) return "Price is "+Math.round(a/1000)+"s old (max 60s). Refresh and retry.";
+  if((q.liq||r.liq||0)<MINLIQ) return "Liquidity too thin ("+fmtK(q.liq||r.liq)+") to trade";
+  return null;
+}
+function previewBuy(r, usd){
+  var q=state.quotes[posKeyFor(r)], liq=q.liq||r.liq, a=simulate("BUY",usd,q.price,liq);
+  if(a.slip>MAXIMP) return {ok:false, reason:"Price impact too high ("+pctS(a.slip)+") for this pool. Try a smaller amount."};
+  var fee=usd*FEE; return {ok:true, usd:usd, fee:fee, a:a, spot:q.price, qty:(usd-fee)/a.px, ts:q.ts};
+}
+function previewSell(r, usd){
+  var k=posKeyFor(r), pos=state.positions[k], q=state.quotes[k], liq=q.liq||r.liq;
+  var qty=Math.min(usd/q.price, pos.qty);
+  var a=simulate("SELL", qty*q.price, q.price, liq);
+  if(a.slip>MAXIMP) return {ok:false, reason:"Price impact too high ("+pctS(a.slip)+") for this pool. Try a smaller amount."};
+  var gross=qty*a.px, fee=gross*FEE, proceeds=gross-fee, basis=pos.avg*qty;
+  return {ok:true, qty:qty, gross:gross, fee:fee, proceeds:proceeds, basis:basis, pnl:proceeds-basis, a:a, spot:q.price, ts:q.ts, all:qty>=pos.qty-1e-12};
+}
 function trade(side){
   haptic();
   var r=state.sel; if(!r){ toast("Select a coin first"); haptic("err"); return; }
   var amt=parseFloat(el("amt").value);
-  var pr=livePrice();
-  if(!pr||pr<=0){ toast("No live price yet"); haptic("err"); return; }
   if(isNaN(amt)||amt<=0){ toast("Enter USD amount"); haptic("err"); return; }
   var k=posKeyFor(r);
-  if(side==="BUY"){
-    if(amt>state.cash){ toast("Not enough cash: "+fmt$(state.cash)); haptic("err"); return; }
-    var qty=amt/pr;
-    openPop("▲ Buy "+r.symbol, "Buy <b>"+fmtP(qty)+"</b> @ <b>"+fmt$(pr)+"</b> for <b>"+fmt$(amt)+"</b>?<br><span class='mut small'>Live DexScreener price · "+esc(r.chain)+" · "+esc(r.dex)+"</span>", "▲ Buy", false, function(){ doBuy(r,pr,amt); });
-  } else {
-    var pos=state.positions[k];
-    if(!pos||pos.qty<=0){ toast("No position to sell"); haptic("err"); return; }
-    var sellQty=Math.min(amt/pr, pos.qty);
-    var proceeds=sellQty*pr, pnl=sellQty*(pr-pos.avg);
-    var pctOff=pos.qty>0? sellQty/pos.qty*100:0;
-    openPop("▼ Sell "+r.symbol, "Sell <b>"+fmtP(sellQty)+"</b> ("+Math.round(pctOff)+"% of position) @ <b>"+fmt$(pr)+"</b> for <b>"+fmt$(proceeds)+"</b>?<br>P&amp;L estimate: <b class='"+(pnl>=0?"up":"dn")+"'>"+sgn$(pnl)+"</b>", "▼ Sell", true, function(){ doSell(k,r,pr,sellQty,pnl); });
-  }
+  if(side==="SELL"&&(!state.positions[k]||state.positions[k].qty<=0)){ toast("No position to sell"); haptic("err"); return; }
+  if(side==="BUY"&&amt<1){ toast("Minimum order is $1"); haptic("err"); return; }
+  if(side==="BUY"&&amt>state.cash+1e-9){ toast("Not enough cash: "+fmt$(state.cash)); haptic("err"); return; }
+  toast("Getting a fresh price…");
+  refreshLivePrice(r.token, r.chain, function(ok){
+    var err=ok? quoteErr(r) : "Could not get a fresh price. Trade rejected.";
+    if(err){ toast(err); showErr(err,true); haptic("err"); return; }
+    showErr("");
+    if(side==="BUY"){
+      var pv=previewBuy(r,amt);
+      if(!pv.ok){ toast(pv.reason); showErr(pv.reason,true); haptic("err"); return; }
+      var body=row("Spot price",fmt$(pv.spot))
+        +row("Slippage","0.5% base + "+pctS(pv.a.imp)+" impact = "+pctS(pv.a.slip))
+        +row("Exec price",fmt$(pv.a.px))
+        +row("Fee (0.25%)",fmt$(pv.fee))
+        +row("You receive",fmtP(pv.qty)+" "+esc(r.symbol))
+        +row("Total debit",fmt$(pv.usd))
+        +row("Cash after",fmt$(state.cash-pv.usd))
+        +'<div class="src">PAPER trade. Price from DexScreener at '+new Date(pv.ts).toLocaleTimeString()+'. Pool liquidity '+fmtK(state.quotes[k].liq||r.liq)+'. Must confirm within 60s.</div>';
+      openPop("▲ Buy "+r.symbol, body, "▲ Confirm", false, function(){ doBuy(r,pv); });
+    } else {
+      var sv=previewSell(r,amt);
+      if(!sv.ok){ toast(sv.reason); showErr(sv.reason,true); haptic("err"); return; }
+      var body2=row("Selling",fmtP(sv.qty)+" "+esc(r.symbol)+(sv.all?" (all)":""))
+        +row("Spot price",fmt$(sv.spot))
+        +row("Slippage","0.5% base + "+pctS(sv.a.imp)+" impact = "+pctS(sv.a.slip))
+        +row("Exec price",fmt$(sv.a.px))
+        +row("Gross",fmt$(sv.gross))
+        +row("Fee (0.25%)",fmt$(sv.fee))
+        +row("You receive",fmt$(sv.proceeds))
+        +row("P&amp;L after fees",'<span class="'+(sv.pnl>=0?"up":"dn")+'">'+sgn$(sv.pnl)+'</span>')
+        +'<div class="src">PAPER trade. Price from DexScreener at '+new Date(sv.ts).toLocaleTimeString()+'. Must confirm within 60s.</div>';
+      openPop("▼ Sell "+r.symbol, body2, "▼ Confirm", true, function(){ doSell(r,sv); });
+    }
+  });
 }
-function doBuy(r,pr,amt){
-  var k=posKeyFor(r), qty=amt/pr;
-  var pos=state.positions[k]||{qty:0,avg:0,symbol:r.symbol,chain:r.chain,dex:r.dex,token:r.token};
-  pos.avg = pos.qty>0? (pos.avg*pos.qty+amt)/(pos.qty+qty) : pr;
-  pos.qty+=qty; pos.symbol=r.symbol; pos.chain=r.chain; pos.dex=r.dex; pos.token=r.token;
-  state.positions[k]=pos; state.cash-=amt;
-  state.prices[k]=pr;
-  state.history.push({ts:Date.now(),side:"BUY",sym:r.symbol,key:k,qty:qty,price:pr,pnl:null});
+function freshEnough(r){ var q=state.quotes[posKeyFor(r)]; return q && Date.now()-q.ts<=STALE_MS; }
+function doBuy(r,pv){
+  if(!freshEnough(r)){ toast("Price went stale, nothing executed. Try again."); haptic("err"); return; }
+  if(pv.usd>state.cash+1e-9){ toast("Insufficient balance"); haptic("err"); return; }
+  var k=posKeyFor(r);
+  var pos=state.positions[k]||{qty:0,avg:0,cost:0,symbol:r.symbol,chain:r.chain,dex:r.dex,token:r.token};
+  var cost0=(typeof pos.cost==="number")?pos.cost:pos.qty*pos.avg;
+  pos.cost=cost0+pv.usd; pos.qty+=pv.qty; pos.avg=pos.cost/pos.qty;
+  pos.symbol=r.symbol; pos.chain=r.chain; pos.dex=r.dex; pos.token=r.token;
+  state.positions[k]=pos; state.cash-=pv.usd; state.fees+=pv.fee;
+  state.history.push({ts:Date.now(),side:"BUY",sym:r.symbol,key:k,qty:pv.qty,price:pv.a.px,spot:pv.spot,gross:pv.usd,fee:pv.fee,slip:pv.a.slip,pnl:null});
   save(); toast("Bought "+r.symbol); haptic("ok"); renderAll();
 }
-function doSell(k,r,pr,qty,pnl){
-  var pos=state.positions[k]; if(!pos) return;
-  state.cash+=qty*pr; pos.qty-=qty;
-  if(Math.abs(pos.qty)<1e-12) delete state.positions[k];
-  state.history.push({ts:Date.now(),side:"SELL",sym:r.symbol,key:k,qty:qty,price:pr,pnl:pnl});
-  save(); toast("Sold "+r.symbol+" · "+sgn$(pnl)); haptic("ok"); renderAll();
+function doSell(r,sv){
+  var k=posKeyFor(r), pos=state.positions[k];
+  if(!freshEnough(r)){ toast("Price went stale, nothing executed. Try again."); haptic("err"); return; }
+  if(!pos||pos.qty<sv.qty-1e-9){ toast("Position changed, nothing executed"); haptic("err"); return; }
+  state.cash+=sv.proceeds; state.fees+=sv.fee;
+  var cost0=(typeof pos.cost==="number")?pos.cost:pos.qty*pos.avg;
+  pos.qty-=sv.qty; pos.cost=cost0-sv.basis;
+  if(pos.qty<=1e-12) delete state.positions[k]; else pos.avg=pos.cost/pos.qty;
+  state.history.push({ts:Date.now(),side:"SELL",sym:r.symbol,key:k,qty:sv.qty,price:sv.a.px,spot:sv.spot,gross:sv.gross,fee:sv.fee,slip:sv.a.slip,pnl:sv.pnl});
+  save(); toast("Sold "+r.symbol+" · "+sgn$(sv.pnl)); haptic("ok"); renderAll();
 }
 function renderAll(){ renderDiscovery(); renderSel(); renderPositions(); renderStats(); }
 
@@ -592,56 +819,64 @@ function chartForKey(k){
 }
 function loadChart(){
   var r=state.sel;
-  if(!r||!r.pool){ el("chartNote").textContent=r?"no pool address":"tap a coin in Discover"; state.chartPts=[]; drawChart(); return; }
+  if(!r||!r.pool){ el("chartNote").textContent=r?"no pool address":"tap a coin in Discover"; state.candles=[]; drawChart(); return; }
   el("chartNote").textContent="loading…";
-  var tf=state.tf==="minute"?"minute":(state.tf==="day"?"day":"hour");
-  gtGet(r.chain+"/pools/"+r.pool+"/ohlcv/"+tf+"?aggregate=1&limit=100", function(err,data,status){
+  var T=TFS[state.tf]||TFS.h1;
+  gtGet(gtChain(r.chain)+"/pools/"+r.pool+"/ohlcv/"+T[0]+"?aggregate="+T[1]+"&limit=100", function(err,data,status){
     if(err){ el("chartNote").textContent=status===429? "rate limited, retry in 30s" : "chart unavailable: "+err.message; return; }
     var list=(data&&data.data&&data.data.attributes&&(data.data.attributes.ohlcv_list||data.data.attributes.ohlcv))||[];
-    if(!list.length){ el("chartNote").textContent="no candles for this pool"; return; }
+    if(!list.length){ el("chartNote").textContent="no candles for this pool"; state.candles=[]; drawChart(); return; }
     list.sort(function(a,b){ return a[0]-b[0]; });
-    state.chartPts=list.map(function(c){ return parseFloat(c[4]); });
-    state.chartTimes=list.map(function(c){ return c[0]; });
+    state.candles=list.map(function(c){ return [c[0],parseFloat(c[1]),parseFloat(c[2]),parseFloat(c[3]),parseFloat(c[4]),parseFloat(c[5])||0]; });
     state.chartPair=r;
-    el("chartNote").textContent=tf+" candles · GeckoTerminal";
+    el("chartNote").textContent=T[2]+" candles + volume · GeckoTerminal";
     var d0=new Date(list[0][0]*1000), d1=new Date(list[list.length-1][0]*1000);
-    el("chartRange").textContent=d0.toLocaleDateString()+" → "+d1.toLocaleDateString();
+    el("chartRange").textContent=d0.toLocaleString()+" → "+d1.toLocaleString();
     drawChart();
   });
 }
 function drawChart(hi){
   var c=el("chart"); if(!c||!c.getContext) return;
   var ctx=c.getContext("2d");
-  var W=c.clientWidth||300, H=260, dpr=2;
+  var W=c.clientWidth||300, H=300, dpr=2;
   if(c.width!==W*dpr){ c.width=W*dpr; c.height=H*dpr; c.style.height=H+"px"; }
   ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
-  var pts=state.chartPts;
-  if(!pts||pts.length<2){ ctx.fillStyle="#8a90a2"; ctx.font="14px system-ui"; ctx.textAlign="center"; ctx.fillText(state.sel? "no chart data yet" : "pick a coin in Discover", W/2, H/2); ctx.textAlign="left"; return; }
-  var mn=Math.min.apply(null,pts), mx=Math.max.apply(null,pts), rg=(mx-mn)||1;
-  var pad=24, ch=H-pad*2;
+  var cd=state.candles;
+  if(!cd||cd.length<2){ ctx.fillStyle="#8a90a2"; ctx.font="14px system-ui"; ctx.textAlign="center"; ctx.fillText(state.sel? "no chart data yet" : "pick a coin in Discover", W/2, H/2); ctx.textAlign="left"; return; }
+  var n=cd.length, mn=Infinity, mx=-Infinity, vmx=0, i;
+  for(i=0;i<n;i++){ if(cd[i][3]<mn) mn=cd[i][3]; if(cd[i][2]>mx) mx=cd[i][2]; if(cd[i][5]>vmx) vmx=cd[i][5]; }
+  var rg=(mx-mn)||mx*0.01||1;
+  var padT=22, volH=56, padB=6, ph=H-padT-volH-padB;
+  function Y(p){ return padT+(1-(p-mn)/rg)*ph; }
+  var cw=W/n, bw=Math.max(1,cw*0.65);
   ctx.strokeStyle="#262a35"; ctx.lineWidth=1; ctx.beginPath();
-  for(var g=0;g<5;g++){ var y=pad+g*ch/4; ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke();
+  for(var g=0;g<5;g++){ var y=padT+g*ph/4; ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke();
   ctx.fillStyle="#8a90a2"; ctx.font="11px system-ui";
-  ctx.fillText(fmt$(mx),4,pad-8); ctx.fillText(fmt$(mn),4,H-8);
-  var up=pts[pts.length-1]>=pts[0], col=up?"#2ee59d":"#ff5c77";
-  function X(i){ return i/(pts.length-1)*W; } function Y(p){ return pad+(1-(p-mn)/rg)*ch; }
-  var grad=ctx.createLinearGradient(0,pad,0,H); grad.addColorStop(0,up?"rgba(46,229,157,.28)":"rgba(255,92,119,.28)"); grad.addColorStop(1,"rgba(0,0,0,0)");
-  ctx.beginPath(); pts.forEach(function(p,i){ if(i===0) ctx.moveTo(X(i),Y(p)); else ctx.lineTo(X(i),Y(p)); });
-  ctx.strokeStyle=col; ctx.lineWidth=2.2; ctx.lineJoin="round"; ctx.stroke();
-  ctx.lineTo(W,H-pad+10); ctx.lineTo(0,H-pad+10); ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
-  var idx=(hi===undefined||hi===null)? pts.length-1 : hi;
-  var px=X(idx), py=Y(pts[idx]);
-  if(idx!==pts.length-1){ ctx.strokeStyle="rgba(255,255,255,.25)"; ctx.beginPath(); ctx.moveTo(px,pad-10); ctx.lineTo(px,H-pad+10); ctx.stroke(); }
-  ctx.beginPath(); ctx.arc(px,py,4.5,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
-  if(idx!==pts.length-1){
-    var t=state.chartTimes&&state.chartTimes[idx]? new Date(state.chartTimes[idx]*1000).toLocaleString() : "";
-    ctx.fillStyle="#eef0f5"; ctx.font="bold 12px system-ui"; var label=fmt$(pts[idx])+"  "+t; var tw=ctx.measureText(label).width;
-    ctx.fillText(label, Math.max(4,Math.min(W-tw-4,px-tw/2)), 14);
+  ctx.fillText(fmt$(mx),4,padT-8); ctx.fillText(fmt$(mn),4,padT+ph-4);
+  for(i=0;i<n;i++){
+    var k=cd[i], x=(i+0.5)*cw, up=k[4]>=k[1], col=up?"#2ee59d":"#ff5c77";
+    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x,Y(k[2])); ctx.lineTo(x,Y(k[3])); ctx.stroke();
+    var yt=Y(Math.max(k[1],k[4])), yb=Y(Math.min(k[1],k[4]));
+    ctx.fillRect(x-bw/2,yt,bw,Math.max(1,yb-yt));
+    if(vmx>0){ ctx.globalAlpha=0.45; var vh=k[5]/vmx*volH; ctx.fillRect(x-bw/2,H-padB-vh,bw,vh); ctx.globalAlpha=1; }
+  }
+  var last=cd[n-1][4], ly=Y(last), lup=last>=cd[0][1];
+  if(hi===undefined||hi===null){
+    ctx.setLineDash([4,4]); ctx.strokeStyle=lup?"#2ee59d":"#ff5c77"; ctx.beginPath(); ctx.moveTo(0,ly); ctx.lineTo(W,ly); ctx.stroke(); ctx.setLineDash([]);
+    var lt=fmt$(last); var tw0=ctx.measureText(lt).width; ctx.fillStyle=lup?"#2ee59d":"#ff5c77"; ctx.fillRect(W-tw0-10,ly-8,tw0+10,16); ctx.fillStyle="#04222c"; ctx.font="bold 11px system-ui"; ctx.fillText(lt,W-tw0-5,ly+4);
+  } else {
+    var h=cd[hi], hx=(hi+0.5)*cw;
+    ctx.strokeStyle="rgba(255,255,255,.35)"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(hx,padT-6); ctx.lineTo(hx,H-padB); ctx.moveTo(0,Y(h[4])); ctx.lineTo(W,Y(h[4])); ctx.stroke();
+    ctx.fillStyle="#eef0f5"; ctx.font="bold 11px system-ui";
+    var label="O "+fmtP(h[1])+"  H "+fmtP(h[2])+"  L "+fmtP(h[3])+"  C "+fmtP(h[4])+"  V "+fmtK(h[5]);
+    var tw=ctx.measureText(label).width; ctx.fillText(label,Math.max(4,Math.min(W-tw-4,hx-tw/2)),12);
+    ctx.fillStyle="#8a90a2"; ctx.fillText(new Date(h[0]*1000).toLocaleString(),4,H-padB-volH-4);
   }
 }
 (function(){
   var c=el("chart");
-  function mv(e){ var t=(e.touches&&e.touches[0])||e; var rc=c.getBoundingClientRect(); var n=state.chartPts.length; if(n<2) return; var i=Math.round((t.clientX-rc.left)/rc.width*(n-1)); i=Math.max(0,Math.min(n-1,i)); drawChart(i); }
+  function mv(e){ var t=(e.touches&&e.touches[0])||e; var rc=c.getBoundingClientRect(); var n=state.candles.length; if(n<2) return; var i=Math.floor((t.clientX-rc.left)/rc.width*n); i=Math.max(0,Math.min(n-1,i)); drawChart(i); }
   c.addEventListener("touchstart",mv,{passive:true}); c.addEventListener("touchmove",mv,{passive:true});
   c.addEventListener("touchend",function(){ drawChart(); }); c.addEventListener("mousemove",mv); c.addEventListener("mouseleave",function(){ drawChart(); });
 })();
@@ -659,6 +894,7 @@ function renderStats(){
     var rz=realizedPnl(); setN("stReal",sgn$(rz),rz>=0?"up":"dn");
   } else { setN("winrate","—"); setN("best","—"); setN("worst","—"); setN("stReal","—"); }
   el("stTrades").textContent=state.history.length;
+  el("stFees").textContent=fmt$(state.fees||0);
   var biggest=null, bigVal=0;
   Object.keys(state.positions).forEach(function(k){ var p=state.positions[k], pr=state.prices[k]; if(p&&pr){ var v=p.qty*pr; if(v>bigVal){ bigVal=v; biggest=p.symbol; } } });
   el("stBag").textContent=biggest? (biggest+" "+fmt$(bigVal)) : "—";
@@ -691,6 +927,7 @@ function switchTab(t){
   if(t==="chart") loadChart();
   if(t==="port"){ renderPositions(); }
   if(t==="stats") renderStats();
+  if(t==="bot") loadBot(false);
   updateBar();
 }
 (function(){ var tb=document.querySelectorAll(".tabbtn[data-tab]"); for(var i=0;i<tb.length;i++){ (function(b){ b.onclick=function(){ haptic(); switchTab(b.getAttribute("data-tab")); }; })(tb[i]); } })();
@@ -698,8 +935,8 @@ function switchTab(t){
 /* ---------- misc buttons ---------- */
 el("refreshBtn").onclick=function(){ haptic(); showErr(""); loadFeed(); if(state.sel) refreshLivePrice(state.sel.token); if(state.tab==="chart") loadChart(); };
 el("resetBtn").onclick=function(){
-  openPop("↺ Reset account","Reset cash to $1,000 and clear all positions and history?","↺ Reset",true,function(){
-    state.cash=1000; state.positions={}; state.history=[]; state.prices={}; save(); renderAll(); toast("Reset to $1,000");
+  openPop("↺ Reset account","Reset the App Wallet (this device only) to $1,000 and clear positions and history? The bot wallet is not affected.","↺ Reset",true,function(){
+    state.cash=1000; state.positions={}; state.history=[]; state.prices={}; state.fees=0; state.quotes={}; save(); renderAll(); toast("Reset to $1,000");
   });
 };
 el("clearHist").onclick=function(){ openPop("🗑 Clear history","Clear trade history? Cash and positions stay.","🗑 Clear",true,function(){ state.history=[]; save(); renderStats(); renderAccount(); }); };
@@ -713,6 +950,55 @@ el("sellBtn").onclick=function(){ trade("SELL"); };
 (function(){ var q=document.querySelectorAll("[data-a]"); for(var i=0;i<q.length;i++){ (function(b){ b.onclick=function(){ haptic(); el("amt").value=b.getAttribute("data-a"); }; })(q[i]); } })();
 (function(){ var q=document.querySelectorAll("[data-tf]"); for(var i=0;i<q.length;i++){ (function(b){ b.onclick=function(){ haptic(); state.tf=b.getAttribute("data-tf"); save(); markTf(); loadChart(); }; })(q[i]); } })();
 function markTf(){ var q=document.querySelectorAll("[data-tf]"); for(var i=0;i<q.length;i++){ q[i].className=q[i].getAttribute("data-tf")===state.tf?"act":""; } }
+
+// ---------- bot wallet (read only, from degen-state.json) ----------
+var BOT_STALE_MS = 15*60*1000;
+function loadBot(force){
+  var now=Date.now();
+  if(!force && state.bot && now-state.botTs<60000){ renderBot(); return; }
+  fetchJSON(BOT_URL+"?t="+Math.floor(now/60000), function(err,data){
+    if(err||!data||data.mode!=="PAPER"){ state.botErr=err?err.message:"bad data"; if(!state.bot){ try{ var c=JSON.parse(localStorage.getItem("paperdegen_bot")||"null"); if(c) state.bot=c; }catch(e){} } renderBot(); return; }
+    state.bot=data; state.botTs=Date.now(); state.botErr="";
+    try{ localStorage.setItem("paperdegen_bot", JSON.stringify(data)); }catch(e){}
+    renderBot();
+  });
+}
+function renderBot(){
+  var d=state.bot, note=el("botNote");
+  if(!d){ note.innerHTML='<span class="stale">'+(state.botErr?"bot snapshot unavailable ("+esc(state.botErr)+")":"loading…")+'</span>'; return; }
+  var ageMs=Date.now()-new Date(d.generated_at).getTime();
+  var stale=isNaN(ageMs)||ageMs>BOT_STALE_MS||!!state.botErr;
+  var mins=Math.max(0,Math.round(ageMs/60000));
+  note.innerHTML=(stale?'<span class="stale">⚠ STALE · ':'● live · ')+'snapshot '+(isNaN(mins)?"?":mins+"m ago")+(state.botErr?' · refresh failed':'')+(stale?'</span>':'')+' · bot via GitHub';
+  function setN(id,t,cls){ var e=el(id); e.textContent=t; e.className="n"+(cls?" "+cls:""); }
+  setN("bEquity",fmt$(d.equity)); setN("bCash",fmt$(d.cash));
+  setN("bUnreal",sgn$(d.unrealized),d.unrealized>=0?"up":"dn"); setN("bReal",sgn$(d.realized),d.realized>=0?"up":"dn");
+  setN("bFees",fmt$(d.fees_total)); setN("bOpen",String((d.positions||[]).length));
+  var pb=el("botPos"); pb.innerHTML="";
+  if(!(d.positions||[]).length) pb.innerHTML='<div class="empty">No bot positions</div>';
+  (d.positions||[]).forEach(function(p){
+    var pnl=(p.last_price||0)*p.qty-p.cost, pc=p.cost? pnl/p.cost*100:0;
+    var dv=document.createElement("div"); dv.className="coin";
+    dv.innerHTML='<div class="chead" style="cursor:default">'+iconHTML(p.symbol,"")+'<span class="cmid"><b>'+esc(p.symbol)+'</b><span class="s">'+esc(p.dex||"")+' · avg '+fmt$(p.avg_cost)+' · '+fmtP(p.qty)+'</span></span><span class="cr"><span class="p">'+fmt$((p.last_price||0)*p.qty)+'</span><br><span class="c '+(pnl>=0?"up":"dn")+'">'+sgn$(pnl)+' ('+(pc>=0?"+":"")+pc.toFixed(1)+'%)</span></span></div>';
+    pb.appendChild(dv);
+  });
+  var ob=el("botOrders"); ob.innerHTML="";
+  if(!(d.orders||[]).length) ob.innerHTML='<div class="empty">No pending orders</div>';
+  (d.orders||[]).forEach(function(o){
+    var dv=document.createElement("div"); dv.className="card";
+    dv.innerHTML='<div class="small"><b>'+esc(o.side)+' '+esc(o.symbol||"")+'</b> limit '+esc(o.limit_price!==undefined?o.limit_price:(o.limit||""))+' · '+esc(o.status||"pending")+'</div>';
+    ob.appendChild(dv);
+  });
+  var tb=el("botTxs"); tb.innerHTML="";
+  var txs=(d.txs||[]).slice(-15).reverse();
+  if(!txs.length) tb.innerHTML='<div class="small mut">No transactions</div>';
+  txs.forEach(function(t){
+    var ok=t.status==="filled", dv=document.createElement("div"); dv.className="hist";
+    dv.innerHTML='<span class="tag '+(!ok?"s":(t.side==="BUY"?"b":"s"))+'">'+(!ok?"✕":(t.side==="BUY"?"▲":"▼"))+'</span><span class="cmid"><b style="font-size:15px">'+esc(t.symbol||"?")+'</b><span class="s">'+(ok? fmtP(t.qty)+' @ '+fmt$(t.exec_price)+' · fee '+fmt$(t.fee) : esc(t.reason||"failed"))+' · '+new Date(t.ts).toLocaleString()+'</span></span>';
+    tb.appendChild(dv);
+  });
+}
+setInterval(function(){ if(state.tab==="bot") loadBot(false); },30000);
 
 /* ---------- boot ---------- */
 load();
