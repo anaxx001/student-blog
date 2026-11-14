@@ -2,14 +2,14 @@
  "schema": 1,
  "mode": "PAPER",
  "currency": "USD",
- "generated_at": "2026-11-14T00:42:48.681341+00:00",
- "last_scan": "2026-11-14T00:42:48.680177+00:00",
+ "generated_at": "2026-11-14T00:44:18.647589+00:00",
+ "last_scan": "2026-11-14T00:44:18.645688+00:00",
  "start_cash": 1000.0,
  "cash": 800.0,
- "positions_value": 131.5468125593263,
+ "positions_value": 134.5874544186499,
  "invested_cost": 200.0,
- "equity": 931.5468125593263,
- "unrealized": -68.4531874406737,
+ "equity": 934.5874544186499,
+ "unrealized": -65.41254558135009,
  "realized": 0.0,
  "fees_total": 0.5,
  "config": {
@@ -28,8 +28,8 @@
    "fees": 0.125,
    "realized": 0.0,
    "opened": "2026-11-13T20:29:32.445594+00:00",
-   "last_price": 0.0003916,
-   "last_price_ts": "2026-11-14T00:42:48.566406+00:00",
+   "last_price": 0.0003979,
+   "last_price_ts": "2026-11-14T00:44:18.533826+00:00",
    "dex": "pumpswap"
   },
   {
@@ -41,8 +41,8 @@
    "fees": 0.125,
    "realized": 0.0,
    "opened": "2026-11-13T20:29:32.467203+00:00",
-   "last_price": 0.0001775,
-   "last_price_ts": "2026-11-14T00:42:48.589728+00:00",
+   "last_price": 0.0001829,
+   "last_price_ts": "2026-11-14T00:44:18.557485+00:00",
    "dex": "pumpswap"
   },
   {
@@ -54,8 +54,8 @@
    "fees": 0.125,
    "realized": 0.0,
    "opened": "2026-11-13T20:29:32.494947+00:00",
-   "last_price": 8.447e-05,
-   "last_price_ts": "2026-11-14T00:42:48.613311+00:00",
+   "last_price": 8.665e-05,
+   "last_price_ts": "2026-11-14T00:44:18.586972+00:00",
    "dex": "pumpswap"
   },
   {
@@ -68,24 +68,12 @@
    "realized": 0.0,
    "opened": "2026-11-13T20:31:02.371894+00:00",
    "last_price": 3.207e-13,
-   "last_price_ts": "2026-11-14T00:42:48.680082+00:00",
+   "last_price_ts": "2026-11-14T00:44:18.645563+00:00",
    "dex": "pumpswap"
   }
  ],
  "orders": [],
  "txs": [
-  {
-   "id": "7db23df1e9",
-   "ts": "2026-11-13T20:59:18.671251+00:00",
-   "status": "failed",
-   "side": "SELL",
-   "token": "8BiqXuErdg662uBkorWrEh1m97bkXSMZG7b6ZbB9ijyZ",
-   "symbol": "Sakura",
-   "reason": "liquidity too thin ($0)",
-   "via": "auto",
-   "qty": 6972887.755653158,
-   "assume": null
-  },
   {
    "id": "ea5070e819",
    "ts": "2026-11-13T21:00:48.717568+00:00",
@@ -1865,6 +1853,18 @@
   {
    "id": "7c1a8c691c",
    "ts": "2026-11-14T00:42:48.680161+00:00",
+   "status": "failed",
+   "side": "SELL",
+   "token": "8BiqXuErdg662uBkorWrEh1m97bkXSMZG7b6ZbB9ijyZ",
+   "symbol": "Sakura",
+   "reason": "liquidity too thin ($0)",
+   "via": "auto",
+   "qty": 6972887.755653158,
+   "assume": null
+  },
+  {
+   "id": "0247842ec9",
+   "ts": "2026-11-14T00:44:18.645667+00:00",
    "status": "failed",
    "side": "SELL",
    "token": "8BiqXuErdg662uBkorWrEh1m97bkXSMZG7b6ZbB9ijyZ",
