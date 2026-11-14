@@ -68,6 +68,16 @@ canvas{width:100%;display:block;touch-action:pan-y}
 .seg{display:flex;gap:6px;margin-top:10px}
 .seg button{flex:1;min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card2);font-size:15px;font-weight:700;cursor:pointer}
 .seg button.act{background:var(--acc);border-color:var(--acc);color:#04222c}
+.ctl{display:flex;gap:6px;margin-top:8px}
+.ctl button{flex:1;min-height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card2);font-size:14px;font-weight:700;cursor:pointer;color:inherit}
+.ctl button.act{background:var(--acc);border-color:var(--acc);color:#04222c}
+.ctl button:disabled{opacity:.4;cursor:not-allowed}
+.fs{position:fixed;inset:0;z-index:60;background:var(--bg);padding:10px 10px calc(10px + var(--sab));display:flex;flex-direction:column;overflow:auto}
+.fs .chartwrap{flex:1;display:flex;margin-top:8px}
+.fsx{display:none}.fs .fsx{display:block}
+.safe .row{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
+.safe .risk{font-size:13px;padding:4px 0}
+.safe .hold{font-size:12px;display:flex;justify-content:space-between;padding:2px 0;word-break:break-all;gap:8px}
 .sum{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;min-width:0}
 .kpi .l{font-size:12px;color:var(--mut);display:flex;gap:4px;align-items:center}
@@ -164,7 +174,15 @@ canvas{width:100%;display:block;touch-action:pan-y}
       <button data-tf="h4" title="4 hour candles">4h</button>
       <button data-tf="d1" title="1 day candles">1d</button>
     </div>
-    <div class="chartwrap"><canvas id="chart" height="300"></canvas></div>
+    <div class="ctl">
+      <button id="mPrice" class="act" title="Price chart">$ Price</button>
+      <button id="mMc" disabled title="Market cap history isn't available: GeckoTerminal OHLCV only returns price and volume, and market_cap_usd is a current snapshot only. Not estimated.">MC</button>
+      <button id="tCandle" class="act" title="Candlesticks">🕯</button>
+      <button id="tLine" title="Line chart">📈</button>
+      <button id="fsBtn" title="Fullscreen chart" aria-label="Fullscreen">⛶</button>
+      <button id="fsClose" class="fsx" title="Close fullscreen" aria-label="Close">✕</button>
+    </div>
+    <div class="chartwrap" id="chartwrap"><canvas id="chart" height="300"></canvas></div>
     <div class="small mut" id="chartRange" style="margin-top:6px;text-align:center"></div>
   </div>
   <div class="card" id="posLineCard" style="display:none"><div class="small" id="posLine"></div></div>
@@ -250,6 +268,7 @@ canvas{width:100%;display:block;touch-action:pan-y}
   <div class="trow"><span class="ico" id="dIco">?</span><div class="nm"><span class="sb" id="dSub"></span><div id="dName" style="font-size:18px">—</div></div><div style="text-align:right"><div style="font-weight:800" id="dPrice">—</div><div class="small" id="dChg"></div></div><button class="ib" id="detClose" title="Close" aria-label="Close">✕</button></div>
   <div class="dgrid" id="dGrid"></div>
   <div class="src" id="dSrc"></div>
+  <div class="safe" id="dSafe" style="margin-top:12px"></div>
   <div class="acts" style="margin-top:14px"><button class="btn acc" id="dChart" title="Open chart">📊</button><button class="btn buy" id="dTrade" title="Trade this coin">⚡</button></div>
 </div></div>
 <div class="pop" id="pop"><div class="sheet">
@@ -567,6 +586,37 @@ function openDetail(r){
   setSel(r); state.detRow=r; renderDetail(r);
   el("det").className="pop det open";
   refreshLivePrice(r.token, r.chain, function(){ if(state.detRow===r) renderDetail(r); });
+  loadSafety(r);
+}
+var RC_CACHE={}, RC_TTL=300000;
+function loadSafety(r){
+  var box=el('dSafe'), m=r.token;
+  if(r.chain!=='solana'){ box.innerHTML='<b>🛡 Safety</b><div class="small mut">RugCheck covers Solana tokens only.</div>'; return; }
+  var c=RC_CACHE[m];
+  if(c && Date.now()-c.ts<RC_TTL){ renderSafety(box,c.data,c.ts,true); return; }
+  box.innerHTML='<b>🛡 Safety</b><div class="small mut">Loading RugCheck report…</div>';
+  fetchJSON('https://api.rugcheck.xyz/v1/tokens/'+encodeURIComponent(m)+'/report', function(err,data,status){
+    if(!state.detRow || state.detRow.token!==m) return;
+    if(err||!data){ box.innerHTML='<b>🛡 Safety</b><div class="small dn">RugCheck unavailable ('+(status===429?'rate limited, try again shortly':esc(err&&err.message||'error'))+'). No safety data shown, never guessed.</div><button class="btn" id="rcRetry" title="Retry">↻</button>'; el('rcRetry').onclick=function(){ loadSafety(r); }; return; }
+    RC_CACHE[m]={data:data,ts:Date.now()}; renderSafety(box,data,Date.now(),false);
+  });
+}
+function renderSafety(box,d,ts,cached){
+  function row(l,v){ return '<div class="row"><span class="mut">'+l+'</span><span>'+v+'</span></div>'; }
+  function auth(a){ return a?'<span class="dn">ACTIVE ⚠ '+esc(String(a).slice(0,6))+'…</span>':'<span class="up">revoked ✓</span>'; }
+  var risks=d.risks||[], h='<b>🛡 Safety</b> <span class="small mut">score '+(d.score_normalised!==undefined?d.score_normalised:'—')+'/10 (lower = safer)</span>';
+  h+=row('Mint authority',auth(d.mintAuthority))+row('Freeze authority',auth(d.freezeAuthority));
+  if(d.rugged) h+=row('Rugged','<span class="dn">YES</span>');
+  if(typeof d.totalHolders==='number') h+=row('Holders',d.totalHolders.toLocaleString());
+  if(typeof d.totalMarketLiquidity==='number') h+=row('Liquidity (all markets)',fmtK(d.totalMarketLiquidity));
+  h+='<div style="margin-top:6px;font-size:13px;font-weight:700">Risks</div>';
+  if(!risks.length) h+='<div class="risk up">No risks flagged by RugCheck</div>';
+  else risks.forEach(function(k){ h+='<div class="risk"><span class="'+(k.level==='danger'?'dn':'')+'">'+(k.level==='danger'?'🔴':k.level==='warn'?'🟠':'🟡')+' '+esc(k.name)+'</span><div class="small mut">'+esc(k.description||'')+(k.value?' ('+esc(k.value)+')':'')+'</div></div>'; });
+  var th=d.topHolders;
+  if(th&&th.length){ h+='<div style="margin-top:6px;font-size:13px;font-weight:700">Top holders</div>'; th.slice(0,10).forEach(function(x,i){ var a=x.owner||x.address||''; h+='<div class="hold"><span>'+(i+1)+'. '+esc(a.slice(0,4)+'…'+a.slice(-4))+(x.insider?' 🕵':'')+'</span><span>'+(typeof x.pct==='number'?x.pct.toFixed(2)+'%':'—')+'</span></div>'; }); }
+  else h+='<div class="small mut">Top holders: not returned.</div>';
+  h+='<div class="src">Source: RugCheck (api.rugcheck.xyz), fetched '+new Date(ts).toLocaleTimeString()+(cached?' (cached, 5 min)':'')+'. Third-party risk signals, not advice.</div>';
+  box.innerHTML=h;
 }
 function closeDetail(){ el("det").className="pop det"; state.detRow=null; }
 function renderDetail(r){
@@ -835,10 +885,11 @@ function loadChart(){
     drawChart();
   });
 }
+state.ctype=state.ctype||'candle';
 function drawChart(hi){
   var c=el("chart"); if(!c||!c.getContext) return;
   var ctx=c.getContext("2d");
-  var W=c.clientWidth||300, H=300, dpr=2;
+  var fs=el('chartwrap').parentNode.classList.contains('fs')||document.body.classList.contains('fsOn'); var W=c.clientWidth||300, H=fs?Math.max(260,(window.innerHeight-190)):300, dpr=2;
   if(c.width!==W*dpr){ c.width=W*dpr; c.height=H*dpr; c.style.height=H+"px"; }
   ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
   var cd=state.candles;
@@ -853,8 +904,15 @@ function drawChart(hi){
   for(var g=0;g<5;g++){ var y=padT+g*ph/4; ctx.moveTo(0,y); ctx.lineTo(W,y); } ctx.stroke();
   ctx.fillStyle="#8a90a2"; ctx.font="11px system-ui";
   ctx.fillText(fmt$(mx),4,padT-8); ctx.fillText(fmt$(mn),4,padT+ph-4);
+  if(state.ctype==='line'){
+    var lcol=cd[n-1][4]>=cd[0][1]?"#2ee59d":"#ff5c77";
+    ctx.strokeStyle=lcol; ctx.lineWidth=2; ctx.beginPath();
+    for(i=0;i<n;i++){ var lx=(i+0.5)*cw; if(i===0) ctx.moveTo(lx,Y(cd[i][4])); else ctx.lineTo(lx,Y(cd[i][4])); } ctx.stroke();
+    ctx.lineTo((n-0.5)*cw,padT+ph); ctx.lineTo(0.5*cw,padT+ph); ctx.closePath(); ctx.globalAlpha=0.1; ctx.fillStyle=lcol; ctx.fill(); ctx.globalAlpha=1; ctx.lineWidth=1;
+  }
   for(i=0;i<n;i++){
     var k=cd[i], x=(i+0.5)*cw, up=k[4]>=k[1], col=up?"#2ee59d":"#ff5c77";
+    if(state.ctype==='line'){ if(vmx>0){ ctx.fillStyle=col; ctx.globalAlpha=0.35; var vh0=k[5]/vmx*volH; ctx.fillRect(x-bw/2,H-padB-vh0,bw,vh0); ctx.globalAlpha=1; } continue; }
     ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(x,Y(k[2])); ctx.lineTo(x,Y(k[3])); ctx.stroke();
     var yt=Y(Math.max(k[1],k[4])), yb=Y(Math.min(k[1],k[4]));
@@ -949,6 +1007,14 @@ el("buyBtn").onclick=function(){ trade("BUY"); };
 el("sellBtn").onclick=function(){ trade("SELL"); };
 (function(){ var q=document.querySelectorAll("[data-a]"); for(var i=0;i<q.length;i++){ (function(b){ b.onclick=function(){ haptic(); el("amt").value=b.getAttribute("data-a"); }; })(q[i]); } })();
 (function(){ var q=document.querySelectorAll("[data-tf]"); for(var i=0;i<q.length;i++){ (function(b){ b.onclick=function(){ haptic(); state.tf=b.getAttribute("data-tf"); save(); markTf(); loadChart(); }; })(q[i]); } })();
+function markCt(){ el('tCandle').className=state.ctype==='candle'?'act':''; el('tLine').className=state.ctype==='line'?'act':''; }
+el('tCandle').onclick=function(){ haptic(); state.ctype='candle'; markCt(); drawChart(); };
+el('tLine').onclick=function(){ haptic(); state.ctype='line'; markCt(); drawChart(); };
+function setFs(on){ var card=el('chartwrap').parentNode; if(on){ card.classList.add('fs'); document.body.classList.add('fsOn'); } else { card.classList.remove('fs'); document.body.classList.remove('fsOn'); } el('fsBtn').style.display=on?'none':''; setTimeout(function(){ el('chart').width=0; drawChart(); },30); }
+el('fsBtn').onclick=function(){ haptic(); setFs(true); };
+el('fsClose').onclick=function(){ haptic(); setFs(false); };
+window.addEventListener('resize',function(){ if(state.candles&&state.candles.length) { el('chart').width=0; drawChart(); } });
+markCt();
 function markTf(){ var q=document.querySelectorAll("[data-tf]"); for(var i=0;i<q.length;i++){ q[i].className=q[i].getAttribute("data-tf")===state.tf?"act":""; } }
 
 // ---------- bot wallet (read only, from degen-state.json) ----------
