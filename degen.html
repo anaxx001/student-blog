@@ -213,6 +213,8 @@ canvas{width:100%;display:block;touch-action:pan-y}
   <div class="sh">🧾 <span>History</span><button class="ib" id="clearHist" title="Clear history" aria-label="Clear history" style="margin-left:auto">🗑</button></div>
   <div class="card" id="histCard"><div id="hist"></div></div>
   <div class="empty" id="histEmpty"><span class="big">🧾</span>No trades yet</div>
+  <div class="sh">📓 <span>Journal</span><span class="sb" id="jNote" style="margin-left:auto"></span></div>
+  <div class="card" id="jCard"><div id="jWatch" class="small mut"></div><div id="jList"></div></div>
   <div class="card" id="setCard"><div class="sh" style="margin-top:0">⚙️ <span>Settings and assumptions</span></div>
     <div class="li"><span class="k">Mode</span><b>PAPER (no real money)</b></div>
     <div class="li"><span class="k">Fee</span><b>0.25% per side</b></div>
@@ -984,7 +986,7 @@ function switchTab(t){
   if(window.scrollTo) window.scrollTo(0,0);
   if(t==="chart") loadChart();
   if(t==="port"){ renderPositions(); }
-  if(t==="stats") renderStats();
+  if(t==="stats"){ renderStats(); loadBot(false); }
   if(t==="bot") loadBot(false);
   updateBar();
 }
@@ -1029,8 +1031,22 @@ function loadBot(force){
     renderBot();
   });
 }
+function renderJournal(){
+  var d=state.bot, w=el("jWatch"), l=el("jList"); if(!w||!l) return;
+  if(!d){ w.textContent="Bot snapshot not loaded yet"; l.innerHTML=""; return; }
+  var wl=d.watchlist||[], js=(d.journal||[]).slice().reverse();
+  w.textContent="👁 Watching "+wl.length+" token"+(wl.length===1?"":"s")+" · add notes in Telegram: /journal add <ca> <text>";
+  l.innerHTML="";
+  if(!js.length){ l.innerHTML='<div class="small mut" style="padding:8px 0">No journal entries yet</div>'; return; }
+  js.slice(0,40).forEach(function(e){
+    var dv=document.createElement("div"); dv.className="li"; dv.style.display="block";
+    dv.innerHTML='<div class="small mut">'+esc(e.symbol?"$"+e.symbol:String(e.token||"").slice(0,8)+"…")+' · '+esc(new Date(e.ts).toLocaleString())+'</div><div style="font-size:14px;white-space:pre-wrap;word-break:break-word">'+esc(e.text)+'</div>';
+    l.appendChild(dv);
+  });
+}
 function renderBot(){
   var d=state.bot, note=el("botNote");
+  renderJournal();
   if(!d){ note.innerHTML='<span class="stale">'+(state.botErr?"bot snapshot unavailable ("+esc(state.botErr)+")":"loading…")+'</span>'; return; }
   var ageMs=Date.now()-new Date(d.generated_at).getTime();
   var stale=isNaN(ageMs)||ageMs>BOT_STALE_MS||!!state.botErr;
@@ -1048,6 +1064,7 @@ function renderBot(){
     dv.innerHTML='<div class="chead" style="cursor:default">'+iconHTML(p.symbol,"")+'<span class="cmid"><b>'+esc(p.symbol)+'</b><span class="s">'+esc(p.dex||"")+' · avg '+fmt$(p.avg_cost)+' · '+fmtP(p.qty)+'</span></span><span class="cr"><span class="p">'+fmt$((p.last_price||0)*p.qty)+'</span><br><span class="c '+(pnl>=0?"up":"dn")+'">'+sgn$(pnl)+' ('+(pc>=0?"+":"")+pc.toFixed(1)+'%)</span></span></div>';
     pb.appendChild(dv);
   });
+  renderJournal();
   var ob=el("botOrders"); ob.innerHTML="";
   if(!(d.orders||[]).length) ob.innerHTML='<div class="empty">No pending orders</div>';
   (d.orders||[]).forEach(function(o){
